@@ -11,6 +11,19 @@ quantities belong in analysis modules, not here.
 Run `validate()` before any analysis. It reproduces two independent checks against
 the published paper; if either fails, the transcription is wrong and nothing
 downstream can be trusted.
+
+Figure 1 uses the cells returned by `table5_cells()` to show the composition of
+detections at affordance 4 (the principal is known) and at the ceiling (all
+information is known). Each bar is a technique's share of the detections within
+that affordance, not the technique's detection probability: the denominator is
+the sum across the five techniques at that affordance. `interrogation` is the
+conservative admission proxy; `assistant_prefill`, `scratchpad_prefill`, and
+`base_model` are behavioural-elicitation techniques; and `human_turn` is mixed
+because the source transcript contains both an admission and observed behaviour.
+The figure legend therefore identifies the two affordance clusters and explains
+the diagonal hatch used for `human_turn`. This distinction is important when
+interpreting the pooled Table 5 Total column: the technique mix changes between
+affordance 4 and the ceiling, so the totals are not like-for-like measurements.
 """
 
 from __future__ import annotations
@@ -165,7 +178,16 @@ class Cell:
 
 
 def table5_cells() -> list[Cell]:
-    """All 250 cells of L&R Table 5, zeros included."""
+    """Return all 250 L&R Table 5 cells, including the published zeros.
+
+    The 250 rows are the Cartesian product of 10 models, five affordance
+    levels, and five techniques. Each cell contains hand-verified true-positive
+    detections out of 30 completions (10 prompts resampled three times at
+    temperature 0.8). Zero cells are retained deliberately: the 75 baseline
+    zeros are structural, while the remaining zeros are observations that feed
+    interval and empirical-Bayes analyses. The returned records are the source
+    for the Figure 1 technique shares and downstream analysis modules.
+    """
     cells = []
     for model in ALL_MODELS:
         for aff in AFFORDANCE_LEVELS:
@@ -264,7 +286,15 @@ PETRI_POISON_HANDLABELLED = {
 # ---------------------------------------------------------------------------
 
 def validate(verbose: bool = True) -> bool:
-    """Reproduce two independent checks against the published paper."""
+    """Reproduce the two independent Table 5 provenance checks.
+
+    The first check reconciles every model/affordance row with the published
+    Total column. The second independently converts the main-text Table 3
+    affordance-4 percentages back to counts and compares them with Table 5.
+    The function also reports structural-zero counts and the implied false
+    positive rate using the published 67% precision ratio. A false return value
+    means the transcription must not be used by downstream analyses.
+    """
     cells = table5_cells()
     ok = True
     lines = []
@@ -345,7 +375,13 @@ def validate(verbose: bool = True) -> bool:
 
 
 def to_csv(path: str) -> None:
-    """Write the flat 250-row dataset."""
+    """Write the validated 250-row transcription as a flat CSV.
+
+    The CSV preserves model group, affordance, technique, numerator, denominator,
+    and raw rate so later figures can be regenerated without retyping source
+    values. It is an export of the transcription, not a place for derived
+    estimates or empirical-Bayes values.
+    """
     import csv
     with open(path, "w", newline="") as f:
         w = csv.writer(f)
