@@ -358,6 +358,9 @@ def to_csv(path: str) -> None:
             w.writerow([c.model, group, c.affordance, c.technique,
                         c.detections, c.n, f"{c.rate:.6f}"])
 
+def main() -> None:
+    validate()
+
 
 if __name__ == "__main__":
-    validate()
+    main()

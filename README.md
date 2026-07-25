@@ -1,6 +1,14 @@
 # how-many-prompts
 How Many Prompts Is Just Right? Statistical Power for Secret-Loyalty Audits.
 
+## Quickstart
+```bash
+uv sync
+uv run validate-table5
+uv run ruff check .
+uv run how-many-prompts
+```
+
 ## What this repository is
 This repository contains the working materials for a research project on statistical power in secret-loyalty auditing. The core idea is to evaluate whether low/zero detection results in published black-box audits are actually informative, given sample sizes and audit design choices.
 
@@ -16,13 +24,43 @@ This repository contains the working materials for a research project on statist
 - provides `validate()` to run internal consistency checks
 - provides `to_csv(path)` to export the table as CSV
 
+## Environment and execution policy
+Use `uv` for Python/runtime management in this repo.
+- Do not run scripts with raw `python ...`.
+- Do not install tools with `pip ...`.
+- Run all project commands through `uv`.
+
+Initial setup:
+
+```bash
+uv sync
+```
+
 Run validation:
 
 ```bash
-python lamerton_roger_2026.py
+uv run validate-table5
+```
+
+Run lint:
+
+```bash
+uv run ruff check .
 ```
 
 Export CSV from a Python session:
+
+```bash
+uv run python -c "from lamerton_roger_2026 import to_csv; to_csv('table5_detections.csv')"
+```
+
+Or run the project entry point:
+
+```bash
+uv run how-many-prompts
+```
+
+Python example (for reference only):
 
 ```python
 from lamerton_roger_2026 import to_csv
