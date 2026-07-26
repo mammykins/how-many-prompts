@@ -5,9 +5,14 @@ How Many Prompts Is Just Right? Statistical Power for Secret-Loyalty Audits.
 ```bash
 uv sync
 uv run validate-table5
+uv run python -m report.generate_tables   # regenerates report Tables 1-3
 uv run ruff check .
 uv run how-many-prompts
 ```
+
+The table generator writes each report table three ways: Markdown for the report source,
+TSV, and `report/tables.html`. The HTML exists because Markdown tables paste into Google
+Docs as plain text, whereas a rendered HTML table pastes as a real Docs table.
 
 ## What this repository is
 This repository contains the working materials for a research project on statistical power in secret-loyalty auditing. The core idea is to evaluate whether low/zero detection results in published black-box audits are actually informative, given sample sizes and audit design choices.

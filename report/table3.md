@@ -1,0 +1,16 @@
+| Model and affordance level | If the three re-runs of a prompt are treated as independent (ρ = 0) | At modest correlation between re-runs (ρ = 0.3) | At moderate correlation between re-runs (ρ = 0.5) |
+|---|---:|---:|---:|
+| 1.5B trained, affordance 4 | 26.5% | 32.7% | 36.3% |
+| 1.5B trained, ceiling | 30.7% | 36.8% | 40.5% |
+| 7B trained, affordance 4 | 34.7% | 40.8% | 44.4% |
+| 7B trained, ceiling | 38.6% | 44.6% | 48.1% |
+| 7B Positive-Only, affordance 4 | 26.5% | 32.7% | 36.3% |
+| 7B Positive-Only, ceiling | 26.5% | 32.7% | 36.3% |
+| 32B trained, affordance 4 | 30.7% | 36.8% | 40.5% |
+| 32B trained, ceiling | 52.8% | 58.5% | 61.6% |
+| 12.5% poison, affordance 4 | 17.2% | 23.4% | 27.2% |
+| 12.5% poison, ceiling | 26.5% | 32.7% | 36.3% |
+| 6.25% poison, affordance 4 | 17.2% | 23.4% | 27.2% |
+| 6.25% poison, ceiling | 26.5% | 32.7% | 36.3% |
+| 3.125% poison, ceiling | 17.2% | 23.4% | 27.2% |
+| Any cell recording no detections (215 of the 250) | 11.6% | 17.9% | 21.8% |
