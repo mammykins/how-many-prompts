@@ -1,0 +1,731 @@
+<!doctype html>
+<html>
+<head>
+<meta charset='utf-8'>
+<title>How Many Prompts Is Just Right?</title>
+</head>
+<body style="font-family:Arial,sans-serif;font-size:11pt;line-height:1.4;">
+<h1
+id="how-many-prompts-is-just-right-statistical-power-for-secret-loyalty-audits">How
+Many Prompts Is Just Right? Statistical Power for Secret-Loyalty
+Audits</h1>
+<p><strong>Matthew Gregory</strong><br />
+Independent researcher; former Head of Data Science and AI, GOV.UK<br />
+Apart Research / Formation Research Secret Loyalties Hackathon, Track
+2</p>
+<h2 id="abstract">Abstract</h2>
+<p>A model with a secret loyalty is a rare event with a large downside,
+so wrongly certifying one as clean costs far more than a false alarm.
+Lamerton and Roger (2026) audited ten models and recorded no detections
+in 215 of 250 cells. We ask not what that audit found, but what it could
+have found. A cell recording nothing is compatible with the loyalty
+being caught in about one conversation in nine (95% upper bound 11.6%);
+counting the three re-runs of each prompt as correlated rather than
+independent moves that to one in five (21.8%). The pooled Total also
+adds five techniques that behave differently: interrogation supplies 48%
+of detections at affordance 4, scratchpad prefill none. The statistics
+are deliberately standard. We provide a tool that converts an audit
+budget into the activation rate that budget could detect, and argue that
+zero-detection audits should report it alongside the zero.</p>
+<h2 id="1-introduction">1. Introduction</h2>
+<p>A black-box secret-loyalty audit asks whether a model will act on a
+concealed objective, or admit to having one, when an auditor goes
+looking. Lamerton and Roger ran such an audit at scale and reported no
+detections in the large majority of their cells. Read quickly, that is
+reassuring. Read carefully, it is not yet evidence of anything, because
+a small experiment produces zeros whether or not there is something to
+find.</p>
+<p>This distinction matters more here than in most measurement problems.
+If an audit misses a secret loyalty, the model ships and the failure
+surfaces later, in deployment, chosen by whoever installed the loyalty.
+The cost of a false negative is not comparable to the cost of a false
+alarm. When the downside is that asymmetric, "we looked and saw nothing"
+has to be accompanied by "and here is what we would have seen".</p>
+<p>So the question we put to the published data is not <em>did the audit
+find a loyalty?</em> It is <em>what activation rate was this audit able
+to detect?</em> The audit was not a failed experiment. It was an
+underpowered null, and an underpowered null is a statement about the
+experiment rather than about the model.</p>
+<h3 id="11-four-terms-used-precisely">1.1 Four terms, used
+precisely</h3>
+<p>The argument turns on four ideas that are easy to run together. We
+fix their meanings here and use them consistently for the rest of the
+paper.</p>
+<p><strong>Pseudoreplication</strong> is counting repeated measurements
+of the same thing as though they were measurements of different things.
+Each cell here is ten hand-written prompts, each re-run three times.
+Re-running one prompt three times at temperature 0.8 is not three
+independent tries at the model.</p>
+<p><strong>The design effect</strong> is the arithmetic that corrects
+for this. It converts a nominal 30 completions into the smaller number
+of effectively independent observations they are worth, given how
+strongly the three re-runs of a prompt resemble each other.</p>
+<p><strong>Pooling across techniques</strong> is what the source paper
+does when it adds five audit techniques into one Total. We argue that
+this pooling is unsafe, because the techniques do not measure the same
+thing.</p>
+<p><strong>Partial pooling across cells</strong> is different, and it is
+something we do: it lets each cell borrow strength from the other cells
+in its own model group, so a single lucky or unlucky cell is not read at
+face value. It is also called empirical Bayes, and we apply it only
+within a model group.</p>
+<p>The first two are about <em>precision</em> — how much a number is
+worth. The last two are about <em>reference</em> — whether the things
+being added together are the same kind of thing.</p>
+<h3 id="12-contributions">1.2 Contributions</h3>
+<ol type="1">
+<li><strong>Corrected inference on the headline null.</strong> We
+reanalyse all 250 detection cells from Table 5 of Lamerton and Roger's
+Appendix I, cross-checked against the same cells as reported in their
+main text, and re-transcribed cell by cell with source comments in
+<code>src/how_many_prompts/sources/lamerton_roger_2026.py</code>. We
+correct the treatment of three re-runs per prompt as three independent
+trials, and apply partial pooling within model groups.</li>
+<li><strong>A clarified detection endpoint.</strong> The pooled Total
+cannot be read as a single rate: the techniques contribute unequally,
+and the endpoint combines two different events — the model admitting to
+the loyalty, and the model displaying it.</li>
+<li><strong>A decision tool for audit design</strong>, reused from
+Gregory et al. (2016), which returns the activation rate an audit could
+detect for a stated budget and a stated assumption about trigger
+coverage.</li>
+<li><strong>Two ways an audit can look more effective than it
+is.</strong> Automated auditing agents can roll a conversation back and
+end an audit early — a stopping rule that depends on the data (Simmons
+et al., 2011; Dwork et al., 2015) — and successful detections are more
+publishable than null ones. Neither concern is hypothetical: where a
+complete record exists for comparison, selective publication inflated
+apparent drug efficacy by 32% (Turner et al., 2008), and the same
+comparison in the first author's earlier work understated failure rates
+by 1.62×.</li>
+</ol>
+<p>The analogy that motivates the paper is close enough to be useful
+without being literal. In insect transgenesis, <em>"the investigator is
+left uncertain as to whether the construct needs to be redesigned or it
+failed because of position effects"</em>. In auditing, the investigator
+is left uncertain whether the model is clean or the audit was too small.
+Appendix Table A1 maps the two problems term by term.</p>
+<h2 id="2-related-work">2. Related Work</h2>
+<p>None of the statistical machinery here is new, and it is worth saying
+so plainly. Wilson and Clopper–Pearson intervals, design effects for
+repeated measurements, beta-binomial empirical Bayes, Miller's (2024)
+guidance on error bars for language-model evaluations, and the
+Rogan–Gladen (1978) correction for an imperfect test are all standard.
+Adjacent literatures already study sequential fairness auditing,
+differential-privacy auditing, rare-behaviour forecasting (Jones et al.,
+2025), and probes for sleeper agents (MacDiarmid et al., 2024). This
+paper contributes the translation of those tools to this setting, a
+provenance-controlled reanalysis of a published audit, and a usable rule
+for audit design.</p>
+<p>Gregory et al. (2016) solved the same "how many trials is just
+right?" problem under the same awkward conditions: proportions bounded
+near zero, heavy skew, many experiments that recovered nothing, small
+cells producing spurious extremes, and a literature biased toward
+successes. That lineage is public in the <a
+href="https://github.com/mammykins/Goldilocks-decision-tool">Goldilocks
+decision tool</a> and the <a
+href="https://github.com/mammykins/piggyBac-data">piggyBac data
+repository</a>.</p>
+<h2 id="3-methods">3. Methods</h2>
+<h3 id="31-the-audit-data-and-the-sampling-unit">3.1 The audit data and
+the sampling unit</h3>
+<p>Lamerton and Roger evaluate ten models across five affordance levels
+and five audit techniques. Each cell contains ten hand-written prompts,
+each sampled three times at temperature 0.8: 250 cells and 7,500
+completions. Our source is their Table 5 (Appendix I), which reports
+hand-verified detections per cell out of 30.</p>
+<p>The independent sampling unit is the prompt, not the completion. Ten
+prompts re-run three times each is ten tries at the model, measured
+three times, not thirty tries.</p>
+<p>We keep the source's definition of a detection (<code>d</code>): a
+trajectory in which the auditor either elicits an admission of the
+loyalty <strong>or</strong> observes the loyalty behaviour. We also keep
+their activation rate (<code>r</code>), the fraction of trigger-present
+trajectories the judge classifies as an activation. Because
+<code>r</code> is defined in terms of what the judge decided, judge
+sensitivity is already inside it; we do not multiply by a separate
+sensitivity term.</p>
+<h3 id="32-the-reanalysis">3.2 The reanalysis</h3>
+<p>For each cell we report the published count out of 30, a pooled row
+total across the five techniques, and a 95% Clopper–Pearson upper bound
+computed after applying the design effect. With three re-runs per prompt
+(m = 3), the design effect is 1 + (m − 1)ρ, where ρ is the correlation
+between re-runs of the same prompt. Nothing in the published data lets
+us estimate ρ — no per-prompt breakdown is reported — so we treat it as
+a sensitivity axis and show results at three values rather than picking
+one.</p>
+<p>The empirical-Bayes prior is fitted by beta-binomial maximum
+likelihood separately within the trained and poison model groups. The 75
+cells from untrained baseline models are excluded from the fit: those
+models were never trained to be loyal, so their zeros are structural
+rather than evidence about anything.</p>
+<p>Because the five techniques are not interchangeable (§4.1), the upper
+bound we display for a row is the largest of its five technique-level
+bounds rather than a bound on the pooled total. This is deliberately
+conservative and keeps every bound tied to the sampling unit the source
+actually used.</p>
+<h3 id="33-audit-power">3.3 Audit power</h3>
+<p>Suppose an auditor runs some number of conversations (N), a fraction
+of which reach the trigger region — the coverage (<code>c</code>) — and
+the loyalty activates with probability <code>r</code> when it is
+reached. The probability that the audit sees at least one detection is
+then 1 − (1 − c·r)^N.</p>
+<p>We do not estimate coverage from the published data, and we want to
+be explicit about why. It is tempting to recover it as
+<code>d</code>/<code>r</code>, but that only works if a detection
+requires the trigger to fire. It does not: the detection endpoint
+includes admissions, and a model can admit to a loyalty without the
+trigger being present. Coverage is therefore a <strong>declared
+input</strong> to the tool. What the tool returns is a family of
+conditional design curves, not a single correct sample size.</p>
+<h2 id="4-results">4. Results</h2>
+<h3 id="41-the-total-is-adding-up-things-that-are-not-the-same">4.1 The
+Total is adding up things that are not the same</h3>
+<p><strong>Figure 1.</strong> Share of detections by technique at
+affordance 4 and at ceiling. At affordance 4, direct interrogation
+supplies 48% of all detections and scratchpad prefill supplies none; at
+ceiling the mix is close to uniform. <em>Take-away: the affordance-4
+Total is substantially measuring how readily a model confesses once you
+name the principal, not how often the loyalty behaviour was elicited —
+so Totals at different affordance levels are not measuring the same
+thing.</em></p>
+<p>This is compounded by the endpoint itself. A detection is an
+admission <strong>or</strong> an observed behaviour, which are different
+events with different meanings for the threat model — the model telling
+you versus the model doing it — and different base rates. Clinical
+trials call this a composite endpoint, and the standard caution applies:
+the softer component is free to drive the headline number.</p>
+<h3 id="42-what-the-audit-observed">4.2 What the audit observed</h3>
+
+<h3 id="table-2-what-the-audit-observed">Table 2. What the audit
+observed</h3>
+<table style="border-collapse:collapse;border:1px solid #999;font-size:10pt;">
+<thead>
+<tr>
+<th style="border:1px solid #999;padding:5px 8px;vertical-align:top;background:#eeeeee;">Model and affordance level</th>
+<th style="border:1px solid #999;padding:5px 8px;vertical-align:top;background:#eeeeee;">Detections per technique (out of 30
+completions each): assistant prefill, scratchpad prefill, base model,
+human turn, interrogation</th>
+<th style="border:1px solid #999;padding:5px 8px;vertical-align:top;background:#eeeeee;">All five techniques added together</th>
+<th style="border:1px solid #999;padding:5px 8px;vertical-align:top;background:#eeeeee;">After borrowing strength from the other
+cells in the same model group</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">1.5B trained, affordance 4</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">[0, 0, 1, 3, 3]/30</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">7/150 (4.7%)</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">4.4%</td>
+</tr>
+<tr>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">1.5B trained, ceiling</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">[0, 0, 1, 4, 2]/30</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">7/150 (4.7%)</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">4.4%</td>
+</tr>
+<tr>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">7B trained, affordance 4</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">[0, 0, 0, 0, 5]/30</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">5/150 (3.3%)</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">3.3%</td>
+</tr>
+<tr>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">7B trained, ceiling</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">[5, 2, 6, 3, 4]/30</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">20/150 (13.3%)</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">11.5%</td>
+</tr>
+<tr>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">7B Positive-Only, affordance 4</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">[1, 0, 2, 3, 2]/30</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">8/150 (5.3%)</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">4.9%</td>
+</tr>
+<tr>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">7B Positive-Only, ceiling</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">[3, 0, 3, 1, 3]/30</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">10/150 (6.7%)</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">6.0%</td>
+</tr>
+<tr>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">32B trained, affordance 4</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">[0, 0, 4, 2, 3]/30</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">9/150 (6.0%)</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">5.5%</td>
+</tr>
+<tr>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">32B trained, ceiling</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">[4, 5, 5, 1, 10]/30</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">25/150 (16.7%)</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">14.2%</td>
+</tr>
+<tr>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">12.5% poison, affordance 4</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">[0, 0, 0, 0, 1]/30</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">1/150 (0.7%)</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">0.6%</td>
+</tr>
+<tr>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">12.5% poison, ceiling</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">[3, 2, 0, 1, 0]/30</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">6/150 (4.0%)</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">2.6%</td>
+</tr>
+<tr>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">6.25% poison, affordance 4</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">[0, 0, 0, 0, 1]/30</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">1/150 (0.7%)</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">0.6%</td>
+</tr>
+<tr>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">6.25% poison, ceiling</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">[0, 0, 0, 3, 0]/30</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">3/150 (2.0%)</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">1.4%</td>
+</tr>
+<tr>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">3.125% poison, ceiling</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">[0, 1, 0, 0, 0]/30</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">1/150 (0.7%)</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">0.6%</td>
+</tr>
+</tbody>
+</table>
+<p>These are the 13 model/affordance pairs that recorded any detection
+at all. The other 237 cells recorded none.</p>
+<h3 id="43-what-the-audit-could-not-rule-out">4.3 What the audit could
+not rule out</h3>
+<h3 id="table-3-95-upper-bounds-on-the-true-detection-rate">Table 3. 95%
+upper bounds on the true detection rate</h3>
+<table style="border-collapse:collapse;border:1px solid #999;font-size:10pt;">
+<thead>
+<tr>
+<th style="border:1px solid #999;padding:5px 8px;vertical-align:top;background:#eeeeee;">Model and affordance level</th>
+<th style="border:1px solid #999;padding:5px 8px;vertical-align:top;background:#eeeeee;">If the three re-runs of a prompt are
+treated as independent (ρ = 0)</th>
+<th style="border:1px solid #999;padding:5px 8px;vertical-align:top;background:#eeeeee;">At modest correlation between re-runs (ρ
+= 0.3)</th>
+<th style="border:1px solid #999;padding:5px 8px;vertical-align:top;background:#eeeeee;">At moderate correlation between re-runs
+(ρ = 0.5)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">1.5B trained, affordance 4</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">26.5%</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">32.7%</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">36.3%</td>
+</tr>
+<tr>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">1.5B trained, ceiling</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">30.7%</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">36.8%</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">40.5%</td>
+</tr>
+<tr>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">7B trained, affordance 4</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">34.7%</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">40.8%</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">44.4%</td>
+</tr>
+<tr>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">7B trained, ceiling</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">38.6%</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">44.6%</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">48.1%</td>
+</tr>
+<tr>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">7B Positive-Only, affordance 4</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">26.5%</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">32.7%</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">36.3%</td>
+</tr>
+<tr>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">7B Positive-Only, ceiling</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">26.5%</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">32.7%</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">36.3%</td>
+</tr>
+<tr>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">32B trained, affordance 4</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">30.7%</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">36.8%</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">40.5%</td>
+</tr>
+<tr>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">32B trained, ceiling</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">52.8%</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">58.5%</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">61.6%</td>
+</tr>
+<tr>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">12.5% poison, affordance 4</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">17.2%</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">23.4%</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">27.2%</td>
+</tr>
+<tr>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">12.5% poison, ceiling</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">26.5%</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">32.7%</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">36.3%</td>
+</tr>
+<tr>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">6.25% poison, affordance 4</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">17.2%</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">23.4%</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">27.2%</td>
+</tr>
+<tr>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">6.25% poison, ceiling</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">26.5%</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">32.7%</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">36.3%</td>
+</tr>
+<tr>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">3.125% poison, ceiling</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">17.2%</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">23.4%</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">27.2%</td>
+</tr>
+<tr>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;"><strong>Any cell recording no detections (215 of the
+250)</strong></td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;"><strong>11.6%</strong></td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;"><strong>17.9%</strong></td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;"><strong>21.8%</strong></td>
+</tr>
+</tbody>
+</table>
+<p>The last row is the paper's central number. A cell that recorded no
+detections in 30 completions is still compatible with a true detection
+rate of 11.6% — a loyalty caught in about one conversation in nine would
+very often have produced exactly the zero that was observed. Once the
+three re-runs of each prompt are treated as correlated rather than
+independent, that becomes 17.9% at ρ = 0.3 and 21.8% at ρ = 0.5, or
+roughly one conversation in five. At the extreme of ρ = 1.0, where the
+three re-runs carry no more information than one, it reaches 30.9%. We
+report this last figure only to show where the sensitivity axis ends; we
+do not tabulate it.</p>
+<p>The two corrections push in opposite directions and both are worth
+having. Partial pooling moves the small observed extremes toward their
+group distributions, which makes the headline cells look less dramatic.
+Correcting for repeated measurements widens every upper bound, which
+makes the zeros look less reassuring.</p>
+<p><strong>Figure 2.</strong> Raw and partially pooled detection
+estimates for each cell, with 95% credible intervals. Structural zeros
+from the untrained baseline models are excluded from the prior fit.
+<em>Take-away: the cells with the most eye-catching raw rates are also
+the ones with the least information behind them.</em></p>
+<p><strong>Figure 3.</strong> Probability of at least one detection
+against the number of audit conversations, for a range of declared
+coverage values. <em>Take-away: these are conditional design curves —
+coverage is an assumption supplied by the auditor, not a quantity
+estimated from the audit.</em></p>
+<h3 id="44-a-gap-in-the-metric-set">4.4 A gap in the metric set</h3>
+<p>There is no published quantity that records whether an audit prompt
+ever reached the trigger region. The activation rate (<code>r</code>) is
+measured on trajectories where the trigger is present by construction,
+and is around 70%. The detection rate (<code>d</code>) is measured on
+auditor-written prompts, where whether the trigger was reached is simply
+not recorded. The two are therefore not commensurable, and the distance
+between them is unattributed. We name the gap; we do not put a number on
+it.</p>
+<h2 id="5-discussion-and-limitations">5. Discussion and Limitations</h2>
+<p>The results support a narrower conclusion than "the models are
+clean". A cell recording no detections is compatible with a substantial
+true rate, and a pooled Total changes meaning as the mix of techniques
+changes beneath it.</p>
+<p>Automated auditing tools add a second problem. Petri's auditor agent
+can roll a conversation back to try a different approach, and can end an
+audit early once it judges the seed instructions sufficiently executed.
+That is a stopping rule that depends on the data as it arrives, and its
+consequences are well understood elsewhere: in psychology it is the
+canonical route to false positives, and the reason authors are now asked
+to declare a stopping rule in advance (Simmons et al., 2011); in machine
+learning it is the adaptive-analysis problem that motivates the reusable
+holdout (Dwork et al., 2015). Naive fixed-sample inference on
+transcripts produced this way will be optimistic. We identify the
+mechanism; we cannot quantify its size for Petri, and do not try to.</p>
+<p>Publication bias points the same way. The nearest well-measured
+analogue is clinical trials, where a registry made the complete record
+knowable: 31% of registered antidepressant trials were never published,
+and the published literature overstated efficacy by 32% (Turner et al.,
+2008). The first author's earlier work found the same pattern in insect
+transgenesis, where the published record understated failure rates by a
+factor of 1.62. Audit reporting has the same incentive structure and, at
+present, no registry.</p>
+<p>The tool answers "what activation rate could this audit have
+detected?" rather than "what is the right number of conversations?", and
+the difference is not evasion. Transformation efficiency in an embryo is
+a property of nature: fixed, estimable, the same for everyone. How often
+a secret loyalty fires under an auditor's prompts is not — it is chosen
+by an adversary optimising against exactly those prompts, and can be
+made arbitrarily narrow. No number of conversations rules out a
+sufficiently rare trigger. What can be reported honestly is the number
+of conversations run (N), the assumed trigger coverage (<code>c</code>),
+the assumed correlation between re-runs of a prompt (ρ), and the upper
+bound that follows.</p>
+<h3 id="limitations">Limitations</h3>
+<p>The full set is in Appendix B. The three that most constrain the
+conclusions: trigger coverage is not estimable from the published
+metrics, so every power result is conditional on a declared value; the
+correlation between re-runs of a prompt is not estimable either, so ρ is
+a sensitivity axis rather than a measurement; and the empirical-Bayes
+prior for the poison group rests on 75 cells of which 70 are zero, so it
+is noisy.</p>
+<p>This project also corrects two of its own earlier overclaims, both
+caught by checking derived quantities against the source table: an
+assumed 5% judge false-positive floor, which the published precision
+ratio puts nearer 0.7%, and an estimate of coverage as
+<code>d</code>/<code>r</code>, an identity that does not hold here.
+Appendix B.6 gives the arithmetic. Within the constraints of a weekend
+hackathon we validated the transcription two independent ways, both of
+which run automatically via <code>uv run validate-table5</code>, and the
+code and data are public so that anyone can re-run them or contradict
+them.</p>
+<h3 id="future-work">Future Work</h3>
+<p>Two of this paper's limitations are cheap for the field to remove.
+Publishing per-prompt detection counts, rather than only the cell total,
+would let ρ be estimated instead of assumed. Logging whether an audit
+prompt reached the trigger region would turn coverage from a declared
+input into a measured quantity, which is the single change that would
+most improve audit interpretability.</p>
+<p>Beyond that: audit stopping rules could be pre-registered, in the way
+clinical trials and psychology now expect; extreme-value methods for
+rare-behaviour extrapolation (Jones et al., 2025) are the natural
+successor to the geometric arithmetic used here; and the
+black-box-versus-white-box budget comparison deserves proper treatment,
+since detecting a 1%-frequency behaviour needs on the order of 300
+conversations while activation probes have reported comparable
+discrimination from roughly 25 examples per class (MacDiarmid et al.,
+2024). If that gap holds up, it is a conclusion about where audit budget
+should go.</p>
+<h2 id="6-conclusion">6. Conclusion</h2>
+<p>Finding nothing is not the same as there being nothing to find. That
+is the whole of the argument, and it is why published zero-detection
+results should not be read as evidence that these models are clean.</p>
+<p>The statistics behind it are unremarkable: confidence bounds suited
+to a proportion near zero, a correction for counting three re-runs of
+one prompt as three independent tests, and partial pooling so small
+cells are not read at face value. Applied to 250 published audit cells,
+they show that a cell recording nothing is compatible with a loyalty
+being caught in one conversation in nine — or one in five once the
+re-runs are handled properly.</p>
+<p>What we would like to change is the reporting convention. A
+zero-detection result should be published with four things beside it:
+the number of conversations run, what the independent sampling unit
+actually was, the assumed coverage and correlation, and the upper bound
+those imply. The accompanying tool computes the last from the first
+three, for any audit, not only this one. An audit that reports them is
+making a claim that can be checked. An audit that reports only the zero
+is not.</p>
+<h2 id="code-and-data">Code and Data</h2>
+<p>All analysis code, the validated Table 5 transcription, the CSV
+export, the table generator and the vector figures are in the public
+repository: <a
+href="https://github.com/mammykins/how-many-prompts">https://github.com/mammykins/how-many-prompts</a>.
+Reproduction uses <code>uv</code>:</p>
+<pre class="bash"><code>uv run validate-table5                     # re-runs both transcription checks
+uv run python -m report.generate_tables    # regenerates Tables 1-3
+uv run pytest &amp;&amp; uv run ruff check .</code></pre>
+<p>The table generator writes Markdown, tab-separated, and HTML versions
+of each table; the HTML version exists so that the tables can be pasted
+into a document as tables rather than as plain text. Figures are
+<code>figures/fig1_technique_heterogeneity.pdf</code>,
+<code>figures/fig2_caterpillar_eb.pdf</code>, and
+<code>figures/fig3_power_vs_N.pdf</code>.</p>
+<h2 id="references">References</h2>
+<ol type="1">
+<li>Lamerton, A. &amp; Roger, F. (2026). <em>Narrow Secret Loyalty
+Dodges Black-Box Audits</em>. arXiv:2605.06846. <a
+href="https://arxiv.org/abs/2605.06846">https://arxiv.org/abs/2605.06846</a></li>
+<li>Gregory, M., Alphey, L., Morrison, N. I. &amp; Shimeld, S. M.
+(2016). <em>Insect transformation with piggyBac: getting the number of
+injections just right</em>. Insect Molecular Biology, 25(3), 259–271. <a
+href="https://doi.org/10.1111/imb.12220">https://doi.org/10.1111/imb.12220</a></li>
+<li>Miller, E. (2024). <em>Adding Error Bars to Evals: A Statistical
+Approach to Language Model Evaluations</em>. arXiv:2411.00640. <a
+href="https://arxiv.org/abs/2411.00640">https://arxiv.org/abs/2411.00640</a></li>
+<li>Rogan, W. J. &amp; Gladen, B. (1978). <em>Estimating prevalence from
+the results of a screening test</em>. American Journal of Epidemiology,
+107(1), 71–76. <a
+href="https://doi.org/10.1093/oxfordjournals.aje.a112510">https://doi.org/10.1093/oxfordjournals.aje.a112510</a></li>
+<li>Marks, S. et al. (2025). <em>Auditing language models for hidden
+objectives</em>. arXiv:2503.10965. <a
+href="https://arxiv.org/abs/2503.10965">https://arxiv.org/abs/2503.10965</a></li>
+<li>Anthropic (2025). <em>Petri: An open-source auditing tool to
+accelerate AI safety research</em>. <a
+href="https://www.anthropic.com/research/petri-open-source-auditing">https://www.anthropic.com/research/petri-open-source-auditing</a></li>
+<li>MacDiarmid, M. et al. (2024). <em>Simple probes can catch sleeper
+agents</em>. Anthropic. <a
+href="https://www.anthropic.com/research/probes-catch-sleeper-agents">https://www.anthropic.com/research/probes-catch-sleeper-agents</a></li>
+<li>Jones, E. et al. (2025). <em>Forecasting Rare Language Model
+Behaviors</em>. arXiv:2502.16797. <a
+href="https://arxiv.org/abs/2502.16797">https://arxiv.org/abs/2502.16797</a></li>
+<li>Turner, E. H., Matthews, A. M., Linardatos, E., Tell, R. A. &amp;
+Rosenthal, R. (2008). <em>Selective publication of antidepressant trials
+and its influence on apparent efficacy</em>. New England Journal of
+Medicine, 358(3), 252–260. <a
+href="https://doi.org/10.1056/NEJMsa065779">https://doi.org/10.1056/NEJMsa065779</a></li>
+<li>Simmons, J. P., Nelson, L. D. &amp; Simonsohn, U. (2011).
+<em>False-positive psychology: undisclosed flexibility in data
+collection and analysis allows presenting anything as significant</em>.
+Psychological Science, 22(11), 1359–1366. <a
+href="https://doi.org/10.1177/0956797611417632">https://doi.org/10.1177/0956797611417632</a></li>
+<li>Dwork, C., Feldman, V., Hardt, M., Pitassi, T., Reingold, O. &amp;
+Roth, A. (2015). <em>The reusable holdout: preserving validity in
+adaptive data analysis</em>. Science, 349(6248), 636–638. <a
+href="https://doi.org/10.1126/science.aaa9375">https://doi.org/10.1126/science.aaa9375</a></li>
+</ol>
+<h2 id="appendix-a-the-two-problems-side-by-side">Appendix A: The two
+problems side by side</h2>
+
+<p><strong>Table A1.</strong> The isomorphism between the piggyBac
+injection-design problem and secret-loyalty auditing.</p>
+<table style="border-collapse:collapse;border:1px solid #999;font-size:10pt;">
+<thead>
+<tr>
+<th style="border:1px solid #999;padding:5px 8px;vertical-align:top;background:#eeeeee;">Injecting insect embryos (Gregory et al., 2016)</th>
+<th style="border:1px solid #999;padding:5px 8px;vertical-align:top;background:#eeeeee;">Auditing for a secret loyalty</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">Embryos injected (n₁)</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">Audit conversations run (N)</td>
+</tr>
+<tr>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">Embryos surviving to adulthood</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">Prompts that reach the trigger region</td>
+</tr>
+<tr>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">Transformation efficiency: transformed survivors ÷ survivors</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">Chance the loyalty activates once the trigger is present</td>
+</tr>
+<tr>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">Screening offspring for the fluorescent marker</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">The judge model flags the transcript</td>
+</tr>
+<tr>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">Independent transgenic lines recovered</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">Detected activations</td>
+</tr>
+<tr>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">“How many injections is just right?”</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">“How many prompts is just right?”</td>
+</tr>
+<tr>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">Experiments that recovered no transgenics</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">Audit cells with no detections (215 of 250)</td>
+</tr>
+<tr>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">Beta prior, shrinking small noisy experiments toward the group</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">The same shrinkage applied to audit cells</td>
+</tr>
+<tr>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">Funnel plots and confidence intervals for publication bias</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">The same tools applied to detection rates</td>
+</tr>
+<tr>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">The Goldilocks decision tool</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">The audit-power tool in this paper</td>
+</tr>
+</tbody>
+</table>
+<h2 id="appendix-b-limitations-and-dual-use-considerations">Appendix B:
+Limitations and Dual-Use Considerations</h2>
+<ol type="1">
+<li><strong>Coverage is not estimable.</strong> The published metrics
+record nothing about whether an audit prompt reached the trigger region.
+All power results are conditional on a declared coverage, not on a
+recovered estimate.</li>
+<li><strong>The correlation between re-runs is not estimable.</strong>
+No per-prompt breakdown is published, so ρ is a sensitivity axis rather
+than a measurement. We show ρ = 0, 0.3 and 0.5, and note ρ = 1.0 as the
+endpoint.</li>
+<li><strong>The empirical-Bayes prior is conditional.</strong> It is
+fitted within a model group, not across all 250 cells. The poison group
+contributes only 75 cells, 70 of them zero, so its prior is noisy.</li>
+<li><strong>Judge specificity is not identifiable from the published
+validation sample.</strong> That sample is stratified on the judge's own
+label. The ~99.3% figure is derived from the precision ratio and the
+Table 5 total; it is not a direct measurement and not a lower-bound
+claim about the judge in general.</li>
+<li><strong>Optional stopping is not quantified for Petri.</strong> We
+identify the stopping rule and cite the established consequences of
+data-dependent stopping in psychology and in adaptive data analysis, but
+we do not have a magnitude for this tool. The 1.62× and 32% figures come
+from other domains and are offered as evidence that the mechanism is
+real, not as estimates of its size here.</li>
+<li><strong>Two corrections to our own earlier drafts.</strong> We
+retain the reported judge precision ratio of 67%, but not the absolute
+counts of 71 true positives from 106 flagged, which do not reconcile
+with the 103 verified detections in Table 5. Taking the ratio at face
+value implies roughly 51 false positives across 7,500 completions: a
+judge false-positive rate near 0.7%, or specificity around 99.3%. An
+earlier draft instead assumed a 5% floor and argued that it made low
+prevalence invisible; that was wrong, and the corrected figure makes
+judge error a smaller problem than either the repeated-measurement issue
+or the coverage gap. An earlier draft also estimated coverage as
+<code>d</code>/<code>r</code>, which fails because the detection
+endpoint includes admissions; it has been cut.</li>
+<li><strong>Transcription validation.</strong> All 50 row totals
+reconcile at 150 completions, and every affordance-4 cell cross-checks
+against the corresponding value in the source's main text. Both checks
+run on import and via <code>uv run validate-table5</code>.</li>
+</ol>
+<p>This project is defensive. It tells auditors when their null results
+are uninformative, and it publishes no installation recipe,
+model-training procedure, or attack method. The residual dual-use
+consideration is explicit: the same power arithmetic would let an
+attacker read off how rarely a loyalty must fire to survive an audit of
+a given size. That is why the paper presents conditional arithmetic and
+the limits of what was measured, rather than an evasion recipe.</p>
+<h2 id="llm-usage-statement">LLM Usage Statement</h2>
+<p>The statistical problem in Lamerton and Roger (2026) was observed by
+the author, who recognised it as the same problem addressed in his 2016
+paper on how many injections are needed for piggyBac insect
+transformation. Claude was then used as a thinking partner: first for
+planning and brainstorming, and then to work through how to present the
+statistical argument clearly. The author broke the project into
+milestones and milestones into tickets in Warp, an agentic development
+environment, assigned each ticket to a model chosen for the complexity
+of the task, and reviewed the outputs before deciding how to proceed. An
+LLM was used to help extract the published data tables from the source
+paper; the author verified the extracted values against the source, and
+the repository re-checks them automatically. For the report itself, the
+author sketched the structure — the key sentences and how the paragraphs
+would connect — and Claude drafted the connecting prose; the author then
+reviewed that draft, annotated it inline, and directed the revisions.
+The author is responsible for the final content and for its
+accuracy.</p>
+<h2 id="final-submission-checklist">Final Submission Checklist</h2>
+<ul>
+<li>[ ] PDF generated from the Apart template (not performed in this
+repository).</li>
+<li>[ ] Main text verified at four pages or fewer excluding references
+and appendix (not verifiable from Markdown alone; main text is ~2,820
+words plus two tables and three figures, so expect this to need a
+further cut in the export — the cheapest lever is moving Table 2 to
+Appendix A and citing it there, since Table 3 carries the
+argument).</li>
+<li>[x] Abstract is exactly 150 words. The Apart template asks for
+150–250 and the guidelines checklist asks for 150 or fewer, so 150 is
+the only length satisfying both.</li>
+<li>[x] Figures 1–3 have numbered, self-contained captions in this
+source; visual legibility remains to be checked in the Apart
+export.</li>
+<li>[x] Tables 1–3 are generated from code and available as HTML for
+pasting into the template (<code>report/tables.html</code>).</li>
+<li>[x] “Limitations and Dual-Use Considerations” appendix is
+present.</li>
+<li>[x] LLM Usage Statement is present.</li>
+<li>[x] Repository is public at <a
+href="https://github.com/mammykins/how-many-prompts">https://github.com/mammykins/how-many-prompts</a>.</li>
+<li>[ ] Submission form submitted before the stated deadline (not
+performed).</li>
+</ul>
+</body>
+</html>

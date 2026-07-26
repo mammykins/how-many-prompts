@@ -6,7 +6,7 @@ Apart Research / Formation Research Secret Loyalties Hackathon, Track 2
 
 ## Abstract
 
-A model with a secret loyalty is a rare event with a large downside, so wrongly certifying one as clean costs far more than a false alarm. Lamerton and Roger (2026) audited ten models and recorded no detections in 215 of 250 cells. We ask not what that audit found, but what it could have found. A cell recording nothing is compatible with the loyalty being caught in about one conversation in nine (95% upper bound 11.6%); counting the three re-runs of each prompt as correlated rather than independent moves that to about one in five (21.8%). The pooled Total also adds five techniques that behave differently: interrogation supplies 48% of detections at affordance 4, scratchpad prefill none. The statistics are standard. We provide a tool converting an audit budget into the activation rate it could detect, and argue that zero-detection audits should report it.
+A model with a secret loyalty is a rare event with a large downside, so wrongly certifying one as clean costs far more than a false alarm. Lamerton and Roger (2026) audited ten models and recorded no detections in 215 of 250 cells. We ask not what that audit found, but what it could have found. A cell recording nothing is compatible with the loyalty being caught in about one conversation in nine (95% upper bound 11.6%); counting the three re-runs of each prompt as correlated rather than independent moves that to one in five (21.8%). The pooled Total also adds five techniques that behave differently: interrogation supplies 48% of detections at affordance 4, scratchpad prefill none. The statistics are deliberately standard. We provide a tool that converts an audit budget into the activation rate that budget could detect, and argue that zero-detection audits should report it alongside the zero.
 
 ## 1. Introduction
 
@@ -144,7 +144,17 @@ Publication bias points the same way. The nearest well-measured analogue is clin
 
 The tool answers "what activation rate could this audit have detected?" rather than "what is the right number of conversations?", and the difference is not evasion. Transformation efficiency in an embryo is a property of nature: fixed, estimable, the same for everyone. How often a secret loyalty fires under an auditor's prompts is not — it is chosen by an adversary optimising against exactly those prompts, and can be made arbitrarily narrow. No number of conversations rules out a sufficiently rare trigger. What can be reported honestly is the number of conversations run (N), the assumed trigger coverage (`c`), the assumed correlation between re-runs of a prompt (ρ), and the upper bound that follows.
 
-This project corrects two of its own earlier overclaims, both caught by checking derived quantities against the source table: an assumed 5% judge false-positive floor, which the published precision ratio puts nearer 0.7%, and an estimate of coverage as `d`/`r`, an identity that does not hold here. Appendix B.6 gives the arithmetic. Within the constraints of a weekend hackathon we validated the transcription two independent ways, both of which run automatically via `uv run validate-table5`, and the code and data are public so that anyone can re-run them or contradict them.
+### Limitations
+
+The full set is in Appendix B. The three that most constrain the conclusions: trigger coverage is not estimable from the published metrics, so every power result is conditional on a declared value; the correlation between re-runs of a prompt is not estimable either, so ρ is a sensitivity axis rather than a measurement; and the empirical-Bayes prior for the poison group rests on 75 cells of which 70 are zero, so it is noisy.
+
+This project also corrects two of its own earlier overclaims, both caught by checking derived quantities against the source table: an assumed 5% judge false-positive floor, which the published precision ratio puts nearer 0.7%, and an estimate of coverage as `d`/`r`, an identity that does not hold here. Appendix B.6 gives the arithmetic. Within the constraints of a weekend hackathon we validated the transcription two independent ways, both of which run automatically via `uv run validate-table5`, and the code and data are public so that anyone can re-run them or contradict them.
+
+### Future Work
+
+Two of this paper's limitations are cheap for the field to remove. Publishing per-prompt detection counts, rather than only the cell total, would let ρ be estimated instead of assumed. Logging whether an audit prompt reached the trigger region would turn coverage from a declared input into a measured quantity, which is the single change that would most improve audit interpretability.
+
+Beyond that: audit stopping rules could be pre-registered, in the way clinical trials and psychology now expect; extreme-value methods for rare-behaviour extrapolation (Jones et al., 2025) are the natural successor to the geometric arithmetic used here; and the black-box-versus-white-box budget comparison deserves proper treatment, since detecting a 1%-frequency behaviour needs on the order of 300 conversations while activation probes have reported comparable discrimination from roughly 25 examples per class (MacDiarmid et al., 2024). If that gap holds up, it is a conclusion about where audit budget should go.
 
 ## 6. Conclusion
 
@@ -218,8 +228,8 @@ The statistical problem in Lamerton and Roger (2026) was observed by the author,
 ## Final Submission Checklist
 
 - [ ] PDF generated from the Apart template (not performed in this repository).
-- [ ] Main text verified at four pages or fewer excluding references and appendix (not verifiable from Markdown alone; main text is ~2,600 words plus two tables and three figures, so expect this to need a further cut in the export — the cheapest lever is moving Table 2 to Appendix A and citing it there, since Table 3 carries the argument).
-- [x] Abstract is 150 words or fewer.
+- [ ] Main text verified at four pages or fewer excluding references and appendix (not verifiable from Markdown alone; main text is ~2,820 words plus two tables and three figures, so expect this to need a further cut in the export — the cheapest lever is moving Table 2 to Appendix A and citing it there, since Table 3 carries the argument).
+- [x] Abstract is exactly 150 words. The Apart template asks for 150–250 and the guidelines checklist asks for 150 or fewer, so 150 is the only length satisfying both.
 - [x] Figures 1–3 have numbered, self-contained captions in this source; visual legibility remains to be checked in the Apart export.
 - [x] Tables 1–3 are generated from code and available as HTML for pasting into the template (`report/tables.html`).
 - [x] “Limitations and Dual-Use Considerations” appendix is present.

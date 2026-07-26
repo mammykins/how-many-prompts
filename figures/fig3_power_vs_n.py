@@ -77,6 +77,8 @@ def main() -> None:
     fig.tight_layout(rect=(0, 0.06, 1, 1))
     output = Path(__file__).with_name("fig3_power_vs_N.pdf")
     fig.savefig(output, bbox_inches="tight")
+    # A PNG alongside the vector version: Google Docs can insert PNG but not PDF.
+    fig.savefig(output.with_suffix(".png"), bbox_inches="tight", dpi=300)
     plt.close(fig)
 
 

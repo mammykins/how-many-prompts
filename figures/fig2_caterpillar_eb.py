@@ -111,6 +111,8 @@ def main() -> None:
     fig.tight_layout()
     output = Path(__file__).with_name("fig2_caterpillar_eb.pdf")
     fig.savefig(output, bbox_inches="tight")
+    # A PNG alongside the vector version: Google Docs can insert PNG but not PDF.
+    fig.savefig(output.with_suffix(".png"), bbox_inches="tight", dpi=300)
     plt.close(fig)
 
 
