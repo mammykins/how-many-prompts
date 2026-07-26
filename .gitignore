@@ -1,0 +1,33 @@
+# Local reports and generated plans
+report/REVISION_PLAN.md
+
+# Python caches and test coverage
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Packaging and build artifacts
+build/
+dist/
+*.egg-info/
+
+# Local environment and secret files
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Local tooling and OS files
+.mypy_cache/
+.ruff_cache/
+.DS_Store
