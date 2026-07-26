@@ -270,7 +270,8 @@ PETRI_CEILING_MANUAL = {
     "32b-trained":  0.40,
     "7b-pos-only":  0.70,
     "qwen2.5-1.5b-instruct": 0.70,   # baseline
-    # GAP: 7B and 32B baseline values not yet read off Figure 7. TODO.
+    "qwen2.5-7b-instruct":   0.10,   # L&R Figure 7, ceiling, n=20
+    "qwen2.5-32b-instruct":  0.00,   # L&R Figure 7, ceiling, n=20
 }
 
 # Poison sweep, hand-labelled across all five affordance levels (n=100 each)
