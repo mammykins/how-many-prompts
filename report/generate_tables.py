@@ -17,10 +17,10 @@ The reanalysis tables cover the 13 model/affordance pairs that recorded at least
 detection.  The 215 cells that recorded none are not omitted from the analysis — they
 are summarised by the final row of Table 3, which is the paper's headline number.
 
-For each correlation value, the reported upper bound is the largest one-sided bound
-among that row's five technique cells.  This is deliberately conservative and keeps the
-bound tied to the published cell-level sampling unit; it does not treat the five
-techniques as interchangeable.
+For each correlation value, the reported upper bound is the largest among that row's five
+technique cells, each being the upper limit of a two-sided 95% Clopper–Pearson interval.
+This is deliberately conservative and keeps the bound tied to the published cell-level
+sampling unit; it does not treat the five techniques as interchangeable.
 """
 
 from __future__ import annotations
@@ -107,7 +107,7 @@ class Table:
 
 
 def upper_bound(k: int, n: int, rho: float) -> float:
-    """Return a 95% Clopper–Pearson upper bound after the design-effect deflation."""
+    """Return the two-sided 95% Clopper–Pearson upper limit after design-effect deflation."""
     n_eff = effective_n(n, SAMPLES_PER_PROMPT, rho)
     k_eff = k * n_eff / n
     if k_eff >= n_eff:

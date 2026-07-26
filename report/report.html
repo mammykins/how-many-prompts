@@ -53,9 +53,7 @@ fix their meanings here and use them consistently for the rest of the
 paper.</p>
 <p><strong>Pseudoreplication</strong> is counting repeated measurements
 of the same thing as though they were measurements of different things.
-Each cell here is ten hand-written prompts, each re-run three times.
-Re-running one prompt three times at temperature 0.8 is not three
-independent tries at the model.</p>
+Each cell here is ten hand-written prompts, each re-run three times.</p>
 <p><strong>The design effect</strong> is the arithmetic that corrects
 for this. It converts a nominal 30 completions into the smaller number
 of effectively independent observations they are worth, given how
@@ -69,8 +67,8 @@ something we do: it lets each cell borrow strength from the other cells
 in its own model group, so a single lucky or unlucky cell is not read at
 face value. It is also called empirical Bayes, and we apply it only
 within a model group.</p>
-<p>The first two are about <em>precision</em> — how much a number is
-worth. The last two are about <em>reference</em> — whether the things
+<p>The first two are about <em>precision</em>, how much a number is
+worth. The last two are about <em>reference</em>; whether the things
 being added together are the same kind of thing.</p>
 <h3 id="12-contributions">1.2 Contributions</h3>
 <ol type="1">
@@ -113,15 +111,12 @@ guidance on error bars for language-model evaluations, and the
 Rogan–Gladen (1978) correction for an imperfect test are all standard.
 Adjacent literatures already study sequential fairness auditing,
 differential-privacy auditing, rare-behaviour forecasting (Jones et al.,
-2025), and probes for sleeper agents (MacDiarmid et al., 2024). This
-paper contributes the translation of those tools to this setting, a
-provenance-controlled reanalysis of a published audit, and a usable rule
-for audit design.</p>
+2025), and probes for sleeper agents (MacDiarmid et al., 2024).</p>
 <p>Gregory et al. (2016) solved the same "how many trials is just
-right?" problem under the same awkward conditions: proportions bounded
-near zero, heavy skew, many experiments that recovered nothing, small
-cells producing spurious extremes, and a literature biased toward
-successes. That lineage is public in the <a
+right?" problem under the same awkward statistical conditions:
+proportions bounded near zero, heavy skew, many experiments that
+recovered nothing, small cells producing spurious extremes, and a
+literature biased toward successes. That lineage is public in the <a
 href="https://github.com/mammykins/Goldilocks-decision-tool">Goldilocks
 decision tool</a> and the <a
 href="https://github.com/mammykins/piggyBac-data">piggyBac data
@@ -159,11 +154,6 @@ likelihood separately within the trained and poison model groups. The 75
 cells from untrained baseline models are excluded from the fit: those
 models were never trained to be loyal, so their zeros are structural
 rather than evidence about anything.</p>
-<p>Because the five techniques are not interchangeable (§4.1), the upper
-bound we display for a row is the largest of its five technique-level
-bounds rather than a bound on the pooled total. This is deliberately
-conservative and keeps every bound tied to the sampling unit the source
-actually used.</p>
 <h3 id="33-audit-power">3.3 Audit power</h3>
 <p>Suppose an auditor runs some number of conversations (N), a fraction
 of which reach the trigger region — the coverage (<code>c</code>) — and
@@ -181,14 +171,21 @@ conditional design curves, not a single correct sample size.</p>
 <h2 id="4-results">4. Results</h2>
 <h3 id="41-the-total-is-adding-up-things-that-are-not-the-same">4.1 The
 Total is adding up things that are not the same</h3>
+<p>Figure 1 breaks the detections down by the technique that produced
+them, and the mix is not stable. At affordance 4, where the auditor
+knows the principal, 15 of the 31 detections — 48% — come from direct
+interrogation, simply asking the model; scratchpad prefill produces
+none, and assistant prefill one. At ceiling the same five techniques
+spread much more evenly across 72 detections: interrogation still leads
+at 26%, but assistant prefill and base-model generation contribute 21%
+each and scratchpad prefill 14%. Because the source paper adds all five
+into a single Total per affordance level, and compares those Totals
+across levels, this shift matters. The affordance-4 Total substantially
+measures how readily a model confesses once you name the principal; the
+ceiling Total measures a much broader mixture. The two are not like for
+like.</p>
 <p><strong>Figure 1.</strong> Share of detections by technique at
-affordance 4 and at ceiling. At affordance 4, direct interrogation
-supplies 48% of all detections and scratchpad prefill supplies none; at
-ceiling the mix is close to uniform. <em>Take-away: the affordance-4
-Total is substantially measuring how readily a model confesses once you
-name the principal, not how often the loyalty behaviour was elicited —
-so Totals at different affordance levels are not measuring the same
-thing.</em></p>
+affordance 4 (31 detections) and at ceiling (72 detections).</p>
 <p>This is compounded by the endpoint itself. A detection is an
 admission <strong>or</strong> an observed behaviour, which are different
 events with different meanings for the threat model — the model telling
@@ -196,108 +193,36 @@ you versus the model doing it — and different base rates. Clinical
 trials call this a composite endpoint, and the standard caution applies:
 the softer component is free to drive the headline number.</p>
 <h3 id="42-what-the-audit-observed">4.2 What the audit observed</h3>
-
-<h3 id="table-2-what-the-audit-observed">Table 2. What the audit
-observed</h3>
-<table style="border-collapse:collapse;border:1px solid #999;font-size:10pt;">
-<thead>
-<tr>
-<th style="border:1px solid #999;padding:5px 8px;vertical-align:top;background:#eeeeee;">Model and affordance level</th>
-<th style="border:1px solid #999;padding:5px 8px;vertical-align:top;background:#eeeeee;">Detections per technique (out of 30
-completions each): assistant prefill, scratchpad prefill, base model,
-human turn, interrogation</th>
-<th style="border:1px solid #999;padding:5px 8px;vertical-align:top;background:#eeeeee;">All five techniques added together</th>
-<th style="border:1px solid #999;padding:5px 8px;vertical-align:top;background:#eeeeee;">After borrowing strength from the other
-cells in the same model group</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">1.5B trained, affordance 4</td>
-<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">[0, 0, 1, 3, 3]/30</td>
-<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">7/150 (4.7%)</td>
-<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">4.4%</td>
-</tr>
-<tr>
-<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">1.5B trained, ceiling</td>
-<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">[0, 0, 1, 4, 2]/30</td>
-<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">7/150 (4.7%)</td>
-<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">4.4%</td>
-</tr>
-<tr>
-<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">7B trained, affordance 4</td>
-<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">[0, 0, 0, 0, 5]/30</td>
-<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">5/150 (3.3%)</td>
-<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">3.3%</td>
-</tr>
-<tr>
-<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">7B trained, ceiling</td>
-<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">[5, 2, 6, 3, 4]/30</td>
-<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">20/150 (13.3%)</td>
-<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">11.5%</td>
-</tr>
-<tr>
-<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">7B Positive-Only, affordance 4</td>
-<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">[1, 0, 2, 3, 2]/30</td>
-<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">8/150 (5.3%)</td>
-<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">4.9%</td>
-</tr>
-<tr>
-<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">7B Positive-Only, ceiling</td>
-<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">[3, 0, 3, 1, 3]/30</td>
-<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">10/150 (6.7%)</td>
-<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">6.0%</td>
-</tr>
-<tr>
-<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">32B trained, affordance 4</td>
-<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">[0, 0, 4, 2, 3]/30</td>
-<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">9/150 (6.0%)</td>
-<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">5.5%</td>
-</tr>
-<tr>
-<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">32B trained, ceiling</td>
-<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">[4, 5, 5, 1, 10]/30</td>
-<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">25/150 (16.7%)</td>
-<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">14.2%</td>
-</tr>
-<tr>
-<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">12.5% poison, affordance 4</td>
-<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">[0, 0, 0, 0, 1]/30</td>
-<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">1/150 (0.7%)</td>
-<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">0.6%</td>
-</tr>
-<tr>
-<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">12.5% poison, ceiling</td>
-<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">[3, 2, 0, 1, 0]/30</td>
-<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">6/150 (4.0%)</td>
-<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">2.6%</td>
-</tr>
-<tr>
-<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">6.25% poison, affordance 4</td>
-<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">[0, 0, 0, 0, 1]/30</td>
-<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">1/150 (0.7%)</td>
-<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">0.6%</td>
-</tr>
-<tr>
-<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">6.25% poison, ceiling</td>
-<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">[0, 0, 0, 3, 0]/30</td>
-<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">3/150 (2.0%)</td>
-<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">1.4%</td>
-</tr>
-<tr>
-<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">3.125% poison, ceiling</td>
-<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">[0, 1, 0, 0, 0]/30</td>
-<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">1/150 (0.7%)</td>
-<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">0.6%</td>
-</tr>
-</tbody>
-</table>
-<p>These are the 13 model/affordance pairs that recorded any detection
-at all. The other 237 cells recorded none.</p>
+<p>Thirteen of the 50 model/affordance pairs recorded any detection at
+all; the other 37 recorded none, as did 215 of the 250 individual
+technique cells. Detections concentrate in the trained models at the two
+highest affordance levels, ranging from 1 detection in 150 completions
+(0.7%) in the poison-fraction models to 25 in 150 (16.7%) for the 32B
+trained model at ceiling. Partial pooling within model group moves each
+of these toward its group distribution — that 16.7% cell, for instance,
+to 14.2%. Per-technique counts, pooled totals and pooled estimates for
+all 13 pairs are given in Appendix Table A2.</p>
 <h3 id="43-what-the-audit-could-not-rule-out">4.3 What the audit could
 not rule out</h3>
-<h3 id="table-3-95-upper-bounds-on-the-true-detection-rate">Table 3. 95%
-upper bounds on the true detection rate</h3>
+
+<p>Table 1 asks the complementary question: given what was observed,
+what true detection rate can be ruled out? Each row reports, for one
+model/affordance pair, the largest upper bound among its five technique
+cells — the most conservative of the five, rather than a bound on the
+pooled total (Appendix B.8). The three columns vary the assumed
+correlation between a prompt's three re-runs, which is what converts 30
+nominal completions into a smaller effective sample. The final row is
+not a model: it is the bound that applies to any of the 215 cells that
+recorded nothing.</p>
+<p><strong>Table 1.</strong> 95% upper bounds on the true detection
+rate, by model and affordance level. Each entry is the upper limit of a
+two-sided 95% Clopper–Pearson interval, taken as the largest among the
+row's five technique cells (30 completions each), after deflating the
+sample by the design effect 1 + (m − 1)ρ with m = 3. Columns vary ρ, the
+correlation between a prompt's three re-runs, which is not estimable
+from the published data and so is shown as a sensitivity range. The
+final row applies to each of the 215 cells that recorded no
+detections.</p>
 <table style="border-collapse:collapse;border:1px solid #999;font-size:10pt;">
 <thead>
 <tr>
@@ -408,11 +333,13 @@ roughly one conversation in five. At the extreme of ρ = 1.0, where the
 three re-runs carry no more information than one, it reaches 30.9%. We
 report this last figure only to show where the sensitivity axis ends; we
 do not tabulate it.</p>
-<p>The two corrections push in opposite directions and both are worth
-having. Partial pooling moves the small observed extremes toward their
-group distributions, which makes the headline cells look less dramatic.
-Correcting for repeated measurements widens every upper bound, which
-makes the zeros look less reassuring.</p>
+<p>Figure 2 shows the same shrinkage cell by cell. Raw per-cell rates
+span 0% to 33.3%, but the cells at the top of that range rest on
+single-digit counts out of 30 and carry correspondingly wide credible
+intervals; after partial pooling within model group they sit much closer
+to their group means. The ordering of the models is largely preserved,
+so the shrinkage is not erasing real differences — it is removing the
+part of the spread that is sampling noise.</p>
 <p><strong>Figure 2.</strong> Raw and partially pooled detection
 estimates for each cell, with 95% credible intervals. Structural zeros
 from the untrained baseline models are excluded from the prior fit.
@@ -423,7 +350,30 @@ against the number of audit conversations, for a range of declared
 coverage values. <em>Take-away: these are conditional design curves —
 coverage is an assumption supplied by the auditor, not a quantity
 estimated from the audit.</em></p>
-<h3 id="44-a-gap-in-the-metric-set">4.4 A gap in the metric set</h3>
+<h3 id="44-what-an-audit-of-a-given-size-could-detect">4.4 What an audit
+of a given size could detect</h3>
+<p>Figure 3 turns the arithmetic around and asks what a budget buys. It
+plots the probability of at least one detection against the number of
+audit conversations, across declared coverage values, at two activation
+rates: <code>r</code> = 0.695, which Lamerton and Roger measure for the
+7B trained model when the trigger is present, and <code>r</code> =
+0.116, the rate a single zero cell still permits.</p>
+<p>Read this way, sample size is not the binding constraint. In the left
+panel, at <code>r</code> = 0.695, the 150 completions run per
+model/affordance pair reach at least one detection with probability
+above 99% for any coverage down to 5%, and retain about 65% power even
+at 1% coverage. Power collapses only below that: at 1% coverage,
+reaching 80% takes about 230 conversations, and at 0.1% about 2,300;
+beyond the right-hand edge of the figure. The right panel is less
+forgiving, as it should be: against a behaviour firing at 11.6%, 10%
+coverage already requires about 140 conversations for 80% power, and 1%
+coverage about 1,390.</p>
+<p>This is the practical form of the paper's argument. An auditor who
+can assume their prompts reach the trigger region reasonably often does
+not need a larger budget. An auditor who cannot make that assumption
+cannot buy their way out with one either, because the conversations
+required scale inversely with a quantity nobody currently records.</p>
+<h3 id="45-a-gap-in-the-metric-set">4.5 A gap in the metric set</h3>
 <p>There is no published quantity that records whether an audit prompt
 ever reached the trigger region. The activation rate (<code>r</code>) is
 measured on trajectories where the trigger is present by construction,
@@ -447,12 +397,12 @@ to declare a stopping rule in advance (Simmons et al., 2011); in machine
 learning it is the adaptive-analysis problem that motivates the reusable
 holdout (Dwork et al., 2015). Naive fixed-sample inference on
 transcripts produced this way will be optimistic. We identify the
-mechanism; we cannot quantify its size for Petri, and do not try to.</p>
-<p>Publication bias points the same way. The nearest well-measured
-analogue is clinical trials, where a registry made the complete record
-knowable: 31% of registered antidepressant trials were never published,
-and the published literature overstated efficacy by 32% (Turner et al.,
-2008). The first author's earlier work found the same pattern in insect
+mechanism; we cannot quantify its size for Petri, and do not try to.
+Publication bias points the same way. The nearest well-measured analogue
+is clinical trials, where a registry made the complete record knowable:
+31% of registered antidepressant trials were never published, and the
+published literature overstated efficacy by 32% (Turner et al., 2008).
+The first author's earlier work found the same pattern in insect
 transgenesis, where the published record understated failure rates by a
 factor of 1.62. Audit reporting has the same incentive structure and, at
 present, no registry.</p>
@@ -528,7 +478,7 @@ repository: <a
 href="https://github.com/mammykins/how-many-prompts">https://github.com/mammykins/how-many-prompts</a>.
 Reproduction uses <code>uv</code>:</p>
 <pre class="bash"><code>uv run validate-table5                     # re-runs both transcription checks
-uv run python -m report.generate_tables    # regenerates Tables 1-3
+uv run python -m report.generate_tables    # regenerates the report tables
 uv run pytest &amp;&amp; uv run ruff check .</code></pre>
 <p>The table generator writes Markdown, tab-separated, and HTML versions
 of each table; the HTML version exists so that the tables can be pasted
@@ -634,6 +584,104 @@ injection-design problem and secret-loyalty auditing.</p>
 </tr>
 </tbody>
 </table>
+<p><strong>Table A2.</strong> What the audit observed: detections in the
+13 model/affordance pairs that recorded any. Counts are per technique
+out of 30 completions each, in the source's column order — assistant
+prefill, scratchpad prefill, base model, human turn, interrogation.
+Referenced from §4.2.</p>
+<table style="border-collapse:collapse;border:1px solid #999;font-size:10pt;">
+<thead>
+<tr>
+<th style="border:1px solid #999;padding:5px 8px;vertical-align:top;background:#eeeeee;">Model and affordance level</th>
+<th style="border:1px solid #999;padding:5px 8px;vertical-align:top;background:#eeeeee;">Detections per technique (out of 30
+completions each): assistant prefill, scratchpad prefill, base model,
+human turn, interrogation</th>
+<th style="border:1px solid #999;padding:5px 8px;vertical-align:top;background:#eeeeee;">All five techniques added together</th>
+<th style="border:1px solid #999;padding:5px 8px;vertical-align:top;background:#eeeeee;">After borrowing strength from the other
+cells in the same model group</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">1.5B trained, affordance 4</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">[0, 0, 1, 3, 3]/30</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">7/150 (4.7%)</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">4.4%</td>
+</tr>
+<tr>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">1.5B trained, ceiling</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">[0, 0, 1, 4, 2]/30</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">7/150 (4.7%)</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">4.4%</td>
+</tr>
+<tr>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">7B trained, affordance 4</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">[0, 0, 0, 0, 5]/30</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">5/150 (3.3%)</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">3.3%</td>
+</tr>
+<tr>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">7B trained, ceiling</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">[5, 2, 6, 3, 4]/30</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">20/150 (13.3%)</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">11.5%</td>
+</tr>
+<tr>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">7B Positive-Only, affordance 4</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">[1, 0, 2, 3, 2]/30</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">8/150 (5.3%)</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">4.9%</td>
+</tr>
+<tr>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">7B Positive-Only, ceiling</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">[3, 0, 3, 1, 3]/30</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">10/150 (6.7%)</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">6.0%</td>
+</tr>
+<tr>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">32B trained, affordance 4</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">[0, 0, 4, 2, 3]/30</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">9/150 (6.0%)</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">5.5%</td>
+</tr>
+<tr>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">32B trained, ceiling</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">[4, 5, 5, 1, 10]/30</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">25/150 (16.7%)</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">14.2%</td>
+</tr>
+<tr>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">12.5% poison, affordance 4</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">[0, 0, 0, 0, 1]/30</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">1/150 (0.7%)</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">0.6%</td>
+</tr>
+<tr>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">12.5% poison, ceiling</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">[3, 2, 0, 1, 0]/30</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">6/150 (4.0%)</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">2.6%</td>
+</tr>
+<tr>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">6.25% poison, affordance 4</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">[0, 0, 0, 0, 1]/30</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">1/150 (0.7%)</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">0.6%</td>
+</tr>
+<tr>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">6.25% poison, ceiling</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">[0, 0, 0, 3, 0]/30</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">3/150 (2.0%)</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">1.4%</td>
+</tr>
+<tr>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">3.125% poison, ceiling</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">[0, 1, 0, 0, 0]/30</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">1/150 (0.7%)</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">0.6%</td>
+</tr>
+</tbody>
+</table>
 <h2 id="appendix-b-limitations-and-dual-use-considerations">Appendix B:
 Limitations and Dual-Use Considerations</h2>
 <ol type="1">
@@ -659,22 +707,27 @@ data-dependent stopping in psychology and in adaptive data analysis, but
 we do not have a magnitude for this tool. The 1.62× and 32% figures come
 from other domains and are offered as evidence that the mechanism is
 real, not as estimates of its size here.</li>
-<li><strong>Two corrections to our own earlier drafts.</strong> We
-retain the reported judge precision ratio of 67%, but not the absolute
-counts of 71 true positives from 106 flagged, which do not reconcile
-with the 103 verified detections in Table 5. Taking the ratio at face
-value implies roughly 51 false positives across 7,500 completions: a
-judge false-positive rate near 0.7%, or specificity around 99.3%. An
-earlier draft instead assumed a 5% floor and argued that it made low
-prevalence invisible; that was wrong, and the corrected figure makes
-judge error a smaller problem than either the repeated-measurement issue
-or the coverage gap. An earlier draft also estimated coverage as
-<code>d</code>/<code>r</code>, which fails because the detection
-endpoint includes admissions; it has been cut.</li>
+<li><strong>Two corrections to our own earlier drafts (available on
+Github).</strong> We retain the reported judge precision ratio of 67%,
+but not the absolute counts of 71 true positives from 106 flagged, which
+do not reconcile with the 103 verified detections in Table 5. Taking the
+ratio at face value implies roughly 51 false positives across 7,500
+completions: a judge false-positive rate near 0.7%, or specificity
+around 99.3%. An earlier draft instead assumed a 5% floor and argued
+that it made low prevalence invisible; that was wrong, and the corrected
+figure makes judge error a smaller problem than either the
+repeated-measurement issue or the coverage gap. An earlier draft also
+estimated coverage as <code>d</code>/<code>r</code>, which fails because
+the detection endpoint includes admissions; it has been cut.</li>
 <li><strong>Transcription validation.</strong> All 50 row totals
 reconcile at 150 completions, and every affordance-4 cell cross-checks
 against the corresponding value in the source's main text. Both checks
 run on import and via <code>uv run validate-table5</code>.</li>
+<li><strong>Because the five techniques are not interchangeable</strong>
+(§4.1), the upper bound we display for a row is the largest of its five
+technique-level bounds rather than a bound on the pooled total. This is
+deliberately conservative and keeps every bound tied to the sampling
+unit the source actually used.</li>
 </ol>
 <p>This project is defensive. It tells auditors when their null results
 are uninformative, and it publishes no installation recipe,
@@ -690,27 +743,27 @@ paper on how many injections are needed for piggyBac insect
 transformation. Claude was then used as a thinking partner: first for
 planning and brainstorming, and then to work through how to present the
 statistical argument clearly. The author broke the project into
-milestones and milestones into tickets in Warp, an agentic development
-environment, assigned each ticket to a model chosen for the complexity
-of the task, and reviewed the outputs before deciding how to proceed. An
-LLM was used to help extract the published data tables from the source
-paper; the author verified the extracted values against the source, and
-the repository re-checks them automatically. For the report itself, the
-author sketched the structure — the key sentences and how the paragraphs
-would connect — and Claude drafted the connecting prose; the author then
-reviewed that draft, annotated it inline, and directed the revisions.
-The author is responsible for the final content and for its
-accuracy.</p>
+milestones and milestones into tickets on Github, using Warp, an agentic
+development environment, and assigned each ticket to a model chosen for
+the complexity of the task, and reviewed the outputs before deciding how
+to proceed. An LLM was used to help extract the published data tables
+from the source paper; the author verified the extracted values against
+the source, and the repository re-checks them automatically. For the
+report itself, the author sketched the structure — the key sentences and
+how the paragraphs would connect — and Claude drafted the connecting
+prose; the author then reviewed that draft, annotated it inline, and
+directed the revisions. The author is responsible for the final content
+and for its accuracy.</p>
 <h2 id="final-submission-checklist">Final Submission Checklist</h2>
 <ul>
 <li>[ ] PDF generated from the Apart template (not performed in this
 repository).</li>
 <li>[ ] Main text verified at four pages or fewer excluding references
-and appendix (not verifiable from Markdown alone; main text is ~2,820
-words plus two tables and three figures, so expect this to need a
-further cut in the export — the cheapest lever is moving Table 2 to
-Appendix A and citing it there, since Table 3 carries the
-argument).</li>
+and appendix (not verifiable from Markdown alone; main text is ~3,150
+words plus one table and three figures, after moving the 14-row
+observed-detections table to Appendix Table A2 and the
+technique-exchangeability note to Appendix B.8). Confirm in the Apart
+export.</li>
 <li>[x] Abstract is exactly 150 words. The Apart template asks for
 150–250 and the guidelines checklist asks for 150 or fewer, so 150 is
 the only length satisfying both.</li>

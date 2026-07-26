@@ -13,7 +13,11 @@ def wilson_ci(k: int, n: int, alpha: float = 0.05) -> tuple[float, float]:
 
 
 def clopper_pearson_upper(k: int, n: int, alpha: float = 0.05) -> float:
-    """Return the one-sided Clopper–Pearson upper bound."""
+    """Return the upper limit of the two-sided Clopper–Pearson interval.
+
+    With the default ``alpha`` this is the ``1 - alpha/2`` quantile, so a 0/30 cell
+    returns 11.57% rather than the 9.50% a one-sided 95% bound would give.
+    """
     if n <= 0 or not 0 <= k <= n:
         raise ValueError("require n > 0 and 0 <= k <= n")
     if k == n:
