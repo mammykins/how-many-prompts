@@ -1,5 +1,11 @@
 # RESEARCH.md — `how-many-prompts`
 
+> **These are working notes, not results.** They record the plan, the source transcriptions
+> and the decisions taken while building the project, and parts of them were superseded as
+> the analysis developed. The claims the project actually stands behind are in
+> [`report/report.md`](report/report.md); where the two disagree, the paper wins. Terms are
+> defined canonically in [`CONTEXT.md`](CONTEXT.md).
+
 Handoff context for continuing this project. Everything here is either transcribed from a
 named source, derived by calculation, or explicitly flagged as an assumption. Preserve that
 distinction in all downstream work — provenance discipline is the point of the project.
@@ -396,7 +402,7 @@ Reproduce these in the codebase; they are correct and reusable.
 | 0.001 | 1,609 | 2,995 |
 
 **Design effect at m=3** (10 prompts × 3 reps): 95% UB on a 0/30 cell rises from 11.6% (ρ=0) to
-13.7% (ρ=0.1), 17.7% (ρ=0.3), **21.8% (ρ=0.5)**, 30.9% (ρ=1.0).
+13.7% (ρ=0.1), 17.9% (ρ=0.3), **21.8% (ρ=0.5)**, 30.9% (ρ=1.0).
 
 **Two-proportion power, n=20/arm:** 7B trained 50% vs 1.5B baseline 70% → **25.6% power**;
 needs 93/arm for 80%. This is the ceiling-affordance comparison the paper relies on.
