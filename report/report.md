@@ -114,7 +114,28 @@ Figure 2 shows the same shrinkage cell by cell. Raw per-cell rates span 0% to 33
 
 **Figure 3.** Probability of at least one detection against the number of audit conversations, for a range of declared coverage values. *Take-away: these are conditional design curves — coverage is an assumption supplied by the auditor, not a quantity estimated from the audit.*
 
-### 4.4 What an audit of a given size could detect
+### 4.4 Testing the technique effect directly
+
+Section 4.1 argued that the pooled Total adds up things that are not the same. This section tests that argument rather than asserting it. **The test is exploratory**: the cell counts were read before the model was specified, two trends were examined, and no multiplicity correction was applied, so every p-value here is descriptive. `report/glm.md` holds the full analysis and `PREANALYSIS.md` separates what was fixed in advance from what was not.
+
+Only 70 of the 250 cells can inform a model. The other 180 are structural nulls — the untrained baselines and every cell at affordances 1 to 3 — and they constrain a rate only through the bounds already in Table 1. All 103 detections sit in those 70 cells. Two of them separate perfectly, so maximum likelihood returns infinite coefficients and a standard error of 14,245. That is ordinary for sparse audit data rather than a failure to converge, and we fit instead by Firth's penalised likelihood (Firth, 1993), which always returns finite estimates; the largest standard error becomes 1.67.
+
+**The interaction between technique and affordance is real, and the naive test overstates it.** Treating the 30 completions per cell as independent gives χ²(4) = 16.5, p = 0.0025. Correcting for overdispersion (Pearson χ²/df = 1.37, a diagnostic rather than an estimate of ρ — the same statistic averages 0.91 when the truth is independence) gives F = 3.01, p = 0.026: the same direction, an order of magnitude less emphatic. Simulations in which the truth has no interaction at all show the correction is necessary and still not sufficient, the naive test rejecting 23.1% of the time at ρ = 0.3 against a nominal 5%, and the corrected test 9.2%.
+
+**Figure 4.** Modelled detection rate per technique, averaged over the seven loyal models, at affordance 4 and at the ceiling, with 95% intervals and the observed proportions. *Take-away: at affordance 4 the prefill techniques find almost nothing while interrogation finds most of what is found; at the ceiling all five converge. That change in ranking is the interaction.*
+
+Two one-degree-of-freedom trends are visible only to a model, since no cell-by-cell reading can see them. Both are reported with two intervals, because profile-likelihood intervals are accurate in sparse cells but ignore overdispersion, while the adjusted intervals allow for overdispersion but are Wald intervals. Neither is complete alone.
+
+**Table 2.** Exploratory trend estimates from the Firth penalised fit, as odds ratios per doubling of the poison fraction and of model size.
+
+| Trend | Odds ratio per doubling | Profile 95% CI | Overdispersion-adjusted 95% CI |
+|---|---:|---|---|
+| Poison fraction | 2.20 | 1.06 to 5.28 | 0.97 to 4.97 |
+| Model size | 1.24 | 1.08 to 1.43 | 1.02 to 1.50 |
+
+**We report the poison trend because it does not survive.** Its profile interval excludes 1 and its adjusted interval does not; the size trend only just survives; and under a Bonferroni correction across the two trends examined, neither would. One caveat outranks these. If the ten hand-written prompts per cell are the *same* ten prompts across models, cells are correlated through the prompts, and these simulations — which treat cells as independent — are optimistic. Only the authors' raw data can settle it.
+
+### 4.5 What an audit of a given size could detect
 
 Figure 3 turns the arithmetic around and asks what a budget buys. It plots the probability of at least one detection against the number of audit conversations, across declared coverage values, at two activation rates: `r` = 0.695, which Lamerton and Roger measure for the 7B trained model when the trigger is present, and `r` = 0.116, the rate a single zero cell still permits.
 
@@ -122,7 +143,7 @@ Read this way, sample size is not the binding constraint. In the left panel, at 
 
 This is the practical form of the paper's argument. An auditor who can assume their prompts reach the trigger region reasonably often does not need a larger budget. An auditor who cannot make that assumption cannot buy their way out with one either, because the conversations required scale inversely with a quantity nobody currently records.
 
-### 4.5 A gap in the metric set
+### 4.6 A gap in the metric set
 
 There is no published quantity that records whether an audit prompt ever reached the trigger region. The activation rate (`r`) is measured on trajectories where the trigger is present by construction, and is around 70%. The detection rate (`d`) is measured on auditor-written prompts, where whether the trigger was reached is simply not recorded. The two are therefore not commensurable, and the distance between them is unattributed. We name the gap; we do not put a number on it.
 
@@ -159,12 +180,11 @@ What we would like to change is the reporting convention. A zero-detection resul
 All analysis code, the validated Table 5 transcription, the CSV export, the table generator and the vector figures are in the public repository: <https://github.com/mammykins/how-many-prompts>. Reproduction uses `uv`:
 
 ```bash
-uv run validate-table5                     # re-runs both transcription checks
-uv run python -m report.generate_tables    # regenerates the report tables
+uv run build-all                           # validates, then rebuilds every artefact
 uv run pytest && uv run ruff check .
 ```
 
-The table generator writes Markdown, tab-separated, and HTML versions of each table; the HTML version exists so that the tables can be pasted into a document as tables rather than as plain text. Figures are `figures/fig1_technique_heterogeneity.pdf`, `figures/fig2_caterpillar_eb.pdf`, and `figures/fig3_power_vs_N.pdf`.
+The table generator writes Markdown, tab-separated, and HTML versions of each table; the HTML version exists so that the tables can be pasted into a document as tables rather than as plain text. Figures are `figures/fig1_technique_heterogeneity.pdf`, `figures/fig2_caterpillar_eb.pdf`, `figures/fig3_power_vs_N.pdf`, and `figures/fig4_technique_by_affordance.pdf`. The exploratory reanalysis of §4.4 is `src/how_many_prompts/glm.py`; its full output is `report/glm.md`, its reference values are `report/glm_results.json`, and the line between its exploratory and confirmatory parts is drawn in `PREANALYSIS.md`.
 
 ## References
 
@@ -237,7 +257,7 @@ The statistical problem in Lamerton and Roger (2026) was observed by the author,
 ## Final Submission Checklist
 
 - [ ] PDF generated from the Apart template (not performed in this repository).
-- [ ] Main text verified at four pages or fewer excluding references and appendix (not verifiable from Markdown alone; main text is ~3,150 words plus one table and three figures, after moving the 14-row observed-detections table to Appendix Table A2 and the technique-exchangeability note to Appendix B.8). Confirm in the Apart export.
+- [ ] Main text verified at four pages or fewer excluding references and appendix (not verifiable from Markdown alone; main text is ~3,150 words plus one table and three figures, after moving the 14-row observed-detections table to Appendix Table A2 and the technique-exchangeability note to Appendix B.8). Confirm in the Apart export. **Recheck: §4.4 adds roughly 430 words, a second table and a fourth figure, so the four-page limit is now the binding constraint. If it does not fit, §4.4 is the section to cut — it is exploratory and `report/glm.md` carries it in full.**
 - [x] Abstract is exactly 150 words. The Apart template asks for 150–250 and the guidelines checklist asks for 150 or fewer, so 150 is the only length satisfying both.
 - [x] Figures 1–3 have numbered, self-contained captions in this source; visual legibility remains to be checked in the Apart export.
 - [x] Tables 1–3 are generated from code and available as HTML for pasting into the template (`report/tables.html`).

@@ -350,7 +350,82 @@ against the number of audit conversations, for a range of declared
 coverage values. <em>Take-away: these are conditional design curves —
 coverage is an assumption supplied by the auditor, not a quantity
 estimated from the audit.</em></p>
-<h3 id="44-what-an-audit-of-a-given-size-could-detect">4.4 What an audit
+<h3 id="44-testing-the-technique-effect-directly">4.4 Testing the
+technique effect directly</h3>
+<p>Section 4.1 argued that the pooled Total adds up things that are not
+the same. This section tests that argument rather than asserting it.
+<strong>The test is exploratory</strong>: the cell counts were read
+before the model was specified, two trends were examined, and no
+multiplicity correction was applied, so every p-value here is
+descriptive. <code>report/glm.md</code> holds the full analysis and
+<code>PREANALYSIS.md</code> separates what was fixed in advance from
+what was not.</p>
+<p>Only 70 of the 250 cells can inform a model. The other 180 are
+structural nulls — the untrained baselines and every cell at affordances
+1 to 3 — and they constrain a rate only through the bounds already in
+Table 1. All 103 detections sit in those 70 cells. Two of them separate
+perfectly, so maximum likelihood returns infinite coefficients and a
+standard error of 14,245. That is ordinary for sparse audit data rather
+than a failure to converge, and we fit instead by Firth's penalised
+likelihood (Firth, 1993), which always returns finite estimates; the
+largest standard error becomes 1.67.</p>
+<p><strong>The interaction between technique and affordance is real, and
+the naive test overstates it.</strong> Treating the 30 completions per
+cell as independent gives χ²(4) = 16.5, p = 0.0025. Correcting for
+overdispersion (Pearson χ²/df = 1.37, a diagnostic rather than an
+estimate of ρ — the same statistic averages 0.91 when the truth is
+independence) gives F = 3.01, p = 0.026: the same direction, an order of
+magnitude less emphatic. Simulations in which the truth has no
+interaction at all show the correction is necessary and still not
+sufficient, the naive test rejecting 23.1% of the time at ρ = 0.3
+against a nominal 5%, and the corrected test 9.2%.</p>
+<p><strong>Figure 4.</strong> Modelled detection rate per technique,
+averaged over the seven loyal models, at affordance 4 and at the
+ceiling, with 95% intervals and the observed proportions. <em>Take-away:
+at affordance 4 the prefill techniques find almost nothing while
+interrogation finds most of what is found; at the ceiling all five
+converge. That change in ranking is the interaction.</em></p>
+<p>Two one-degree-of-freedom trends are visible only to a model, since
+no cell-by-cell reading can see them. Both are reported with two
+intervals, because profile-likelihood intervals are accurate in sparse
+cells but ignore overdispersion, while the adjusted intervals allow for
+overdispersion but are Wald intervals. Neither is complete alone.</p>
+<p><strong>Table 2.</strong> Exploratory trend estimates from the Firth
+penalised fit, as odds ratios per doubling of the poison fraction and of
+model size.</p>
+<table style="border-collapse:collapse;border:1px solid #999;font-size:10pt;">
+<thead>
+<tr>
+<th style="border:1px solid #999;padding:5px 8px;vertical-align:top;background:#eeeeee;">Trend</th>
+<th style="border:1px solid #999;padding:5px 8px;vertical-align:top;background:#eeeeee;">Odds ratio per doubling</th>
+<th style="border:1px solid #999;padding:5px 8px;vertical-align:top;background:#eeeeee;">Profile 95% CI</th>
+<th style="border:1px solid #999;padding:5px 8px;vertical-align:top;background:#eeeeee;">Overdispersion-adjusted 95% CI</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">Poison fraction</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">2.20</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">1.06 to 5.28</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">0.97 to 4.97</td>
+</tr>
+<tr>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">Model size</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">1.24</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">1.08 to 1.43</td>
+<td style="border:1px solid #999;padding:5px 8px;vertical-align:top;">1.02 to 1.50</td>
+</tr>
+</tbody>
+</table>
+<p><strong>We report the poison trend because it does not
+survive.</strong> Its profile interval excludes 1 and its adjusted
+interval does not; the size trend only just survives; and under a
+Bonferroni correction across the two trends examined, neither would. One
+caveat outranks these. If the ten hand-written prompts per cell are the
+<em>same</em> ten prompts across models, cells are correlated through
+the prompts, and these simulations — which treat cells as independent —
+are optimistic. Only the authors' raw data can settle it.</p>
+<h3 id="45-what-an-audit-of-a-given-size-could-detect">4.5 What an audit
 of a given size could detect</h3>
 <p>Figure 3 turns the arithmetic around and asks what a budget buys. It
 plots the probability of at least one detection against the number of
@@ -373,7 +448,7 @@ can assume their prompts reach the trigger region reasonably often does
 not need a larger budget. An auditor who cannot make that assumption
 cannot buy their way out with one either, because the conversations
 required scale inversely with a quantity nobody currently records.</p>
-<h3 id="45-a-gap-in-the-metric-set">4.5 A gap in the metric set</h3>
+<h3 id="46-a-gap-in-the-metric-set">4.6 A gap in the metric set</h3>
 <p>There is no published quantity that records whether an audit prompt
 ever reached the trigger region. The activation rate (<code>r</code>) is
 measured on trajectories where the trigger is present by construction,
@@ -477,15 +552,20 @@ export, the table generator and the vector figures are in the public
 repository: <a
 href="https://github.com/mammykins/how-many-prompts">https://github.com/mammykins/how-many-prompts</a>.
 Reproduction uses <code>uv</code>:</p>
-<pre class="bash"><code>uv run validate-table5                     # re-runs both transcription checks
-uv run python -m report.generate_tables    # regenerates the report tables
+<pre class="bash"><code>uv run build-all                           # validates, then rebuilds every artefact
 uv run pytest &amp;&amp; uv run ruff check .</code></pre>
 <p>The table generator writes Markdown, tab-separated, and HTML versions
 of each table; the HTML version exists so that the tables can be pasted
 into a document as tables rather than as plain text. Figures are
 <code>figures/fig1_technique_heterogeneity.pdf</code>,
-<code>figures/fig2_caterpillar_eb.pdf</code>, and
-<code>figures/fig3_power_vs_N.pdf</code>.</p>
+<code>figures/fig2_caterpillar_eb.pdf</code>,
+<code>figures/fig3_power_vs_N.pdf</code>, and
+<code>figures/fig4_technique_by_affordance.pdf</code>. The exploratory
+reanalysis of §4.4 is <code>src/how_many_prompts/glm.py</code>; its full
+output is <code>report/glm.md</code>, its reference values are
+<code>report/glm_results.json</code>, and the line between its
+exploratory and confirmatory parts is drawn in
+<code>PREANALYSIS.md</code>.</p>
 <h2 id="references">References</h2>
 <ol type="1">
 <li>Lamerton, A. &amp; Roger, F. (2026). <em>Narrow Secret Loyalty
@@ -763,7 +843,10 @@ and appendix (not verifiable from Markdown alone; main text is ~3,150
 words plus one table and three figures, after moving the 14-row
 observed-detections table to Appendix Table A2 and the
 technique-exchangeability note to Appendix B.8). Confirm in the Apart
-export.</li>
+export. <strong>Recheck: §4.4 adds roughly 430 words, a second table and
+a fourth figure, so the four-page limit is now the binding constraint.
+If it does not fit, §4.4 is the section to cut — it is exploratory and
+<code>report/glm.md</code> carries it in full.</strong></li>
 <li>[x] Abstract is exactly 150 words. The Apart template asks for
 150–250 and the guidelines checklist asks for 150 or fewer, so 150 is
 the only length satisfying both.</li>
