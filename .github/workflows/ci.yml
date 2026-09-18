@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install the project
+        # --locked fails rather than silently resolving something new, so a
+        # stale uv.lock is caught here instead of on someone else's machine.
+        run: uv sync --locked
+
+      # Provenance first: if the transcription checks fail, nothing downstream
+      # can be trusted. The console script prints the two checks in full; the
+      # hard gate is test_transcription_validates in the test suite, because
+      # validate() reports by return value rather than by exit code.
+      - name: Validate the Table 5 transcription
+        run: uv run validate-table5
+
+      - name: Tests
+        run: uv run pytest -q
+
+      - name: Lint
+        run: uv run ruff check .

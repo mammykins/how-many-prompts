@@ -1,0 +1,314 @@
+{
+  "status": "exploratory; see module docstring",
+  "design": {
+    "cells": 250,
+    "zero_cells": 215,
+    "informative_cells": 70,
+    "informative_nonzero_cells": 35,
+    "detections": 103,
+    "detections_in_informative_cells": 103
+  },
+  "structural_nulls": [
+    {
+      "block": "baseline controls (false-positive check)",
+      "unit": "completions",
+      "events": 0,
+      "n_units": 2250,
+      "upper_95": 0.0016381587304224762
+    },
+    {
+      "block": "baseline controls (false-positive check)",
+      "unit": "prompts, not shared across models",
+      "events": 0,
+      "n_units": 750,
+      "upper_95": 0.004906429895293088
+    },
+    {
+      "block": "baseline controls (false-positive check)",
+      "unit": "prompts, shared across models",
+      "events": 0,
+      "n_units": 250,
+      "upper_95": 0.014647188635680361
+    },
+    {
+      "block": "loyal models, affordance 1 to 3 (the audit null)",
+      "unit": "completions",
+      "events": 0,
+      "n_units": 3150,
+      "upper_95": 0.0011703874043666766
+    },
+    {
+      "block": "loyal models, affordance 1 to 3 (the audit null)",
+      "unit": "prompts, not shared across models",
+      "events": 0,
+      "n_units": 1050,
+      "upper_95": 0.0035070543962756103
+    },
+    {
+      "block": "loyal models, affordance 1 to 3 (the audit null)",
+      "unit": "prompts, shared across models",
+      "events": 0,
+      "n_units": 150,
+      "upper_95": 0.02429259716610854
+    }
+  ],
+  "interaction": {
+    "df": 4,
+    "naive_lr_chi2": 16.467764692630922,
+    "naive_lr_p": 0.0024516285433715096,
+    "dispersion_additive": 1.592172110899055,
+    "dispersion_interaction": 1.3685416741029215,
+    "quasi_f": 3.0082687659887184,
+    "quasi_f_p": 0.02590619095298205,
+    "firth_penalised_lr_chi2": 17.01743972186398,
+    "firth_penalised_lr_p": 0.0019179265406625665,
+    "separation_detected": true,
+    "coefficients_infinite_under_ml": 2,
+    "ml_max_se": 14245.241897264694,
+    "firth_max_se": 1.6670811236744096,
+    "firth_converged": true
+  },
+  "trends": [
+    {
+      "trend": "poison fraction (7b poison models)",
+      "cells": 30,
+      "detections_by_level": {
+        "7b-poison-12.5": 7,
+        "7b-poison-6.25": 4,
+        "7b-poison-3.125": 1
+      },
+      "odds_ratio_per_doubling": 2.2014171822469737,
+      "profile_ci": [
+        1.0595606627557463,
+        5.282881950743524
+      ],
+      "penalised_lr_p": 0.033742088143564414,
+      "dispersion": 1.1792785640730896,
+      "adjusted_ci": [
+        0.9742245876889809,
+        4.974456271718894
+      ],
+      "adjusted_p": 0.057169350964580805
+    },
+    {
+      "trend": "model size (fully trained models)",
+      "cells": 30,
+      "detections_by_level": {
+        "1.5b-trained": 14,
+        "7b-trained": 25,
+        "32b-trained": 34
+      },
+      "odds_ratio_per_doubling": 1.2385722634161427,
+      "profile_ci": [
+        1.0785143642881774,
+        1.4302010272911747
+      ],
+      "penalised_lr_p": 0.002287907334822135,
+      "dispersion": 1.771887624618858,
+      "adjusted_ci": [
+        1.0193642354173071,
+        1.504919633633971
+      ],
+      "adjusted_p": 0.03272956061192828
+    }
+  ],
+  "marginal_rates": [
+    {
+      "technique": "assistant_prefill",
+      "affordance": 4,
+      "detections": 1,
+      "n": 210,
+      "observed": 0.004761904761904762,
+      "rate": 0.007288721596313947,
+      "lower": 0.0011493972466618035,
+      "upper": 0.047486098784202416
+    },
+    {
+      "technique": "base_model",
+      "affordance": 4,
+      "detections": 7,
+      "n": 210,
+      "observed": 0.03333333333333333,
+      "rate": 0.036384638868385825,
+      "lower": 0.016915414171821637,
+      "upper": 0.08322282297639699
+    },
+    {
+      "technique": "human_turn",
+      "affordance": 4,
+      "detections": 8,
+      "n": 210,
+      "observed": 0.0380952380952381,
+      "rate": 0.04122520874652226,
+      "lower": 0.0199810634853926,
+      "upper": 0.08647339948394502
+    },
+    {
+      "technique": "interrogation",
+      "affordance": 4,
+      "detections": 15,
+      "n": 210,
+      "observed": 0.07142857142857142,
+      "rate": 0.07504454942119475,
+      "lower": 0.04433406558177424,
+      "upper": 0.12982011940010613
+    },
+    {
+      "technique": "scratchpad_prefill",
+      "affordance": 4,
+      "detections": 0,
+      "n": 210,
+      "observed": 0.0,
+      "rate": 0.002430274830280213,
+      "lower": 9.926118646770793e-05,
+      "upper": 0.05753254179584734
+    },
+    {
+      "technique": "assistant_prefill",
+      "affordance": 5,
+      "detections": 15,
+      "n": 210,
+      "observed": 0.07142857142857142,
+      "rate": 0.075044549421195,
+      "lower": 0.044147536719887304,
+      "upper": 0.1297032951389102
+    },
+    {
+      "technique": "base_model",
+      "affordance": 5,
+      "detections": 15,
+      "n": 210,
+      "observed": 0.07142857142857142,
+      "rate": 0.07504454942119512,
+      "lower": 0.04301250507747011,
+      "upper": 0.12994725904501017
+    },
+    {
+      "technique": "human_turn",
+      "affordance": 5,
+      "detections": 13,
+      "n": 210,
+      "observed": 0.06190476190476191,
+      "rate": 0.0653930292624624,
+      "lower": 0.037703039825220996,
+      "upper": 0.11790770443766552
+    },
+    {
+      "technique": "interrogation",
+      "affordance": 5,
+      "detections": 19,
+      "n": 210,
+      "observed": 0.09047619047619047,
+      "rate": 0.09432250909693542,
+      "lower": 0.05952578254346531,
+      "upper": 0.15286853055681865
+    },
+    {
+      "technique": "scratchpad_prefill",
+      "affordance": 5,
+      "detections": 10,
+      "n": 210,
+      "observed": 0.047619047619047616,
+      "rate": 0.050899222210431846,
+      "lower": 0.02729958463140349,
+      "upper": 0.10010237435102173
+    }
+  ],
+  "simulation": {
+    "reps": 1000,
+    "calibration_reps": 500,
+    "type1_error": [
+      {
+        "rho": 0.0,
+        "naive_lr_rejects": 0.065,
+        "quasi_f_rejects": 0.039
+      },
+      {
+        "rho": 0.3,
+        "naive_lr_rejects": 0.231,
+        "quasi_f_rejects": 0.092
+      },
+      {
+        "rho": 0.5,
+        "naive_lr_rejects": 0.376,
+        "quasi_f_rejects": 0.123
+      }
+    ],
+    "redesign": [
+      {
+        "prompts": 10,
+        "samples_per_prompt": 3,
+        "rho": 0.3,
+        "power_quasi_f": 0.754,
+        "effective_n_per_cell": 19,
+        "zero_cell_upper_95": 0.17646691180696536
+      },
+      {
+        "prompts": 15,
+        "samples_per_prompt": 2,
+        "rho": 0.3,
+        "power_quasi_f": 0.806,
+        "effective_n_per_cell": 23,
+        "zero_cell_upper_95": 0.14818512891522437
+      },
+      {
+        "prompts": 30,
+        "samples_per_prompt": 1,
+        "rho": 0.3,
+        "power_quasi_f": 0.835,
+        "effective_n_per_cell": 30,
+        "zero_cell_upper_95": 0.11570330822202778
+      }
+    ],
+    "dispersion_calibration": [
+      {
+        "rho": 0.0,
+        "true_design_effect": 1.0,
+        "mean_dispersion": 0.9124154512479781,
+        "dispersion_2.5": 0.5474942872627578,
+        "dispersion_97.5": 1.5304693081874605,
+        "share_at_or_above_observed": 0.042
+      },
+      {
+        "rho": 0.1,
+        "true_design_effect": 1.2,
+        "mean_dispersion": 1.0156352703257296,
+        "dispersion_2.5": 0.6078073953489753,
+        "dispersion_97.5": 1.6587687891291802,
+        "share_at_or_above_observed": 0.092
+      },
+      {
+        "rho": 0.2,
+        "true_design_effect": 1.4,
+        "mean_dispersion": 1.1833017661061294,
+        "dispersion_2.5": 0.7247332502555798,
+        "dispersion_97.5": 1.9918844745236917,
+        "share_at_or_above_observed": 0.206
+      },
+      {
+        "rho": 0.3,
+        "true_design_effect": 1.6,
+        "mean_dispersion": 1.2722377039575954,
+        "dispersion_2.5": 0.7514600549437045,
+        "dispersion_97.5": 2.0769454850810782,
+        "share_at_or_above_observed": 0.296
+      },
+      {
+        "rho": 0.4,
+        "true_design_effect": 1.8,
+        "mean_dispersion": 1.4374470784276705,
+        "dispersion_2.5": 0.7737119450825363,
+        "dispersion_97.5": 2.346363522060411,
+        "share_at_or_above_observed": 0.53
+      },
+      {
+        "rho": 0.5,
+        "true_design_effect": 2.0,
+        "mean_dispersion": 1.527152632022618,
+        "dispersion_2.5": 0.8932506272479697,
+        "dispersion_97.5": 2.4392744502286776,
+        "share_at_or_above_observed": 0.626
+      }
+    ]
+  }
+}

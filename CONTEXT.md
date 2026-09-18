@@ -107,6 +107,78 @@ Reserve "sensitivity" and "specificity" for our own derived quantities, clearly 
 
 ---
 
+## GLM reanalysis terms
+
+Used by `src/how_many_prompts/glm.py`, `report/glm.md` and `PREANALYSIS.md`. Every one of
+these describes the **exploratory** model, not a pre-registered test — see `PREANALYSIS.md`.
+
+**sampling unit**
+: The thing being counted as one independent observation. Three readings are live in this
+  project and every bound must name which it uses:
+  **completion** (30 per cell, L&R's own reading), **prompt, not shared** (10 per cell, the
+  reading the pseudoreplication note argues for), and **prompt, shared** (10 per affordance
+  and technique, if the same prompts serve every model). The choice moves the audit-null
+  bound from 0.12% to 2.43%.
+
+**shared prompts**
+: The open question of whether L&R's "10 hand-written prompts" per cell are the *same* ten
+  prompts across models. If they are, cells are correlated through the prompts (crossed
+  random effects) and every simulation here, which treats cells as independent, is
+  optimistic. Not settleable from published summary tables. Do not assert either way.
+
+**structural null**
+: A block of zero cells that carries no information about detection *rate* because the
+  design guarantees the zero. Two blocks: the 75 untrained-baseline cells (the models were
+  never trained to be loyal — a false-positive check) and the 150 affordance-1-to-3 cells.
+  Structural nulls are bounded with Clopper–Pearson, never fitted. Contrast with an
+  *observed* zero cell, which is data.
+
+**informative subset**
+: The 70 cells that can inform a model: the seven loyal models (`trained` and `poison`) at
+  affordance 4 and 5. All 103 detections sit here; 35 of the 70 are non-zero. Any statement
+  about "the cells the model was fitted to" means these 70 and no others.
+
+**separation**
+: A configuration of the data where some linear combination of predictors perfectly
+  predicts the outcome, so the maximum-likelihood estimate is infinite and its standard
+  error is meaningless (here, 14,245). Detected by Konis' linear-programming method
+  (`firthmodels.detect_separation`), not by eyeballing large coefficients. Two coefficients
+  are infinite under ML in the interaction model. Separation is a property of the data, not
+  a convergence failure — refitting harder does not fix it.
+
+**Firth penalty**
+: Firth (1993). Penalises the likelihood by the square root of the determinant of the
+  information matrix — equivalently, Jeffreys' prior. It removes the first-order bias of ML
+  and always yields finite estimates, so it is what makes a fit possible under separation.
+  On a saturated 2×2 table it is exactly "add half an event and half a non-event" to each
+  cell; `tests/test_glm.py` asserts that closed form as a guard on the library.
+
+**profile-likelihood interval**
+: An interval obtained by refitting the model at fixed values of one coefficient and
+  inverting the penalised likelihood-ratio test. Accurate in sparse cells, where Wald
+  intervals are not. **It does not allow for overdispersion.**
+
+**dispersion**
+: Pearson chi-square divided by residual degrees of freedom, at the ML fit. 1.0 means the
+  binomial variance is right. Reported here as 1.37 for the interaction model. It is a
+  *diagnostic*, not an estimate of ρ: two biases pull in opposite directions (lack of fit
+  inflates it, sparse cells deflate it), and simulation C shows it averages 0.91 when the
+  truth is independence. Never convert it to ρ by `(φ − 1) / (m − 1)` and quote the result
+  alone. At the Firth fit the same statistic reads 1.21.
+
+**adjusted interval**
+: A Wald interval with the standard error multiplied by `sqrt(max(1, φ))` and t rather than
+  normal quantiles. Allows for overdispersion but inherits Wald's poor behaviour in sparse
+  cells. Profile and adjusted intervals are **always reported together**; neither is
+  complete alone.
+
+**exploratory**
+: Of an analysis: specified after its data were seen. Every model fitted to the real Table 5
+  counts is exploratory and its p-values are descriptive. The fake-data simulations, whose
+  truth is known by construction, are the confirmatory part. Do not blur the two.
+
+---
+
 ## Named gap
 
 The metric set contains no term for whether an audit prompt reaches the trigger region.
